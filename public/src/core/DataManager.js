@@ -332,6 +332,26 @@ class DataManager {
     }
 
     /**
+     * Сохранить все данные (совместимость со старым API)
+     */
+    async saveData(data) {
+        try {
+            // Сохраняем портфель
+            await this.savePortfolio(data.portfolio);
+
+            // Сохраняем настройки
+            await this.saveSettings(data.settings);
+
+            eventBus.emit('data:saved', data);
+            return true;
+        } catch (error) {
+            console.error('Error in saveData:', error);
+            eventBus.emit('data:error', { type: 'save', error });
+            return false;
+        }
+    }
+
+    /**
      * Экспорт данных (совместимость)
      */
     async exportData() {

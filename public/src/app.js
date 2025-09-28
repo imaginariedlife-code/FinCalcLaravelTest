@@ -135,21 +135,18 @@ function finCalcApp() {
 
         // Настройка слушателей событий
         setupEventListeners() {
-            // Автосохранение при изменении данных
+            // Пересчет при изменении данных (сохранение происходит в API методах)
             eventBus.on('portfolio:changed', () => {
                 console.log('EventBus portfolio:changed triggered');
                 this.calculate();
-                this.saveData();
             });
 
             eventBus.on('settings:changed', () => {
                 this.calculate();
-                this.saveData();
             });
 
             eventBus.on('scenarios:changed', () => {
                 this.calculate();
-                this.saveData();
             });
 
             // Обновление графиков
@@ -281,10 +278,15 @@ function finCalcApp() {
         },
 
         // Добавление актива
-        addAsset(assetType) {
+        async addAsset(assetType) {
             try {
                 const newAsset = assetClasses.createDefaultAsset(assetType, 0);
-                this.portfolio.assets.push(newAsset);
+
+                // Добавляем актив через API
+                const savedAsset = await dataManager.addAsset(newAsset);
+
+                // Обновляем локальный state
+                this.portfolio.assets.push(savedAsset);
 
                 // Если находимся на вкладке активов, пересчитываем детальные проекции
                 if (this.activeTab === 'assets') {
@@ -560,9 +562,22 @@ function finCalcApp() {
         },
 
         // Обновление актива с пересчетом портфеля
-        updateAssetValue(index, field, value) {
+        async updateAssetValue(index, field, value) {
             if (this.portfolio.assets[index]) {
-                this.portfolio.assets[index][field] = value;
+                const asset = this.portfolio.assets[index];
+
+                // Обновляем локально
+                asset[field] = value;
+
+                try {
+                    // Сохраняем через API если у актива есть ID
+                    if (asset.id) {
+                        await dataManager.updateAsset(asset.id, asset);
+                    }
+                } catch (error) {
+                    console.error('Error updating asset:', error);
+                }
+
                 this.updatePortfolioValue();
                 this.calculate();
 
@@ -571,8 +586,6 @@ function finCalcApp() {
                     this.calculateDetailedProjections();
                     this.updateAssetChart();
                 }
-
-                this.saveData();
             }
         },
 
@@ -601,7 +614,8 @@ function finCalcApp() {
                 }
             }
 
-            this.saveData();
+            // Сохраняем настройки через API
+            dataManager.saveSettings(this.settings);
         },
 
         // Обновление настроек сценариев
