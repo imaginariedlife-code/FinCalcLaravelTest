@@ -8,14 +8,14 @@
 
     <style>
         :root {
-            --primary-color: #0052FF;
-            --secondary-color: #00D4FF;
-            --dark-bg: #0A0E27;
-            --card-bg: #141938;
-            --text-primary: #FFFFFF;
-            --text-secondary: #B8C5D0;
-            --accent-gradient: linear-gradient(135deg, #0052FF 0%, #00D4FF 100%);
-            --border-color: rgba(0, 212, 255, 0.2);
+            --primary-color: #3B82F6;
+            --secondary-color: #60A5FA;
+            --dark-bg: #F0F9FF;
+            --card-bg: #FFFFFF;
+            --text-primary: #1E293B;
+            --text-secondary: #64748B;
+            --accent-gradient: linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%);
+            --border-color: rgba(59, 130, 246, 0.15);
         }
 
         * {
@@ -40,7 +40,7 @@
             justify-content: center;
             position: relative;
             overflow: hidden;
-            background: linear-gradient(135deg, #0A0E27 0%, #141938 50%, #0A0E27 100%);
+            background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 50%, #EFF6FF 100%);
         }
 
         .hero::before {
@@ -48,7 +48,7 @@
             position: absolute;
             width: 500px;
             height: 500px;
-            background: radial-gradient(circle, rgba(0, 82, 255, 0.15) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, transparent 70%);
             top: -250px;
             right: -250px;
             animation: pulse 4s ease-in-out infinite;
@@ -59,7 +59,7 @@
             position: absolute;
             width: 400px;
             height: 400px;
-            background: radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(96, 165, 250, 0.15) 0%, transparent 70%);
             bottom: -200px;
             left: -200px;
             animation: pulse 6s ease-in-out infinite;
@@ -117,7 +117,7 @@
         }
 
         .badge {
-            background: var(--card-bg);
+            background: #FFFFFF;
             border: 1px solid var(--border-color);
             padding: 0.75rem 1.5rem;
             border-radius: 2rem;
@@ -126,12 +126,13 @@
             align-items: center;
             gap: 0.5rem;
             transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
         }
 
         .badge:hover {
             border-color: var(--secondary-color);
             transform: translateY(-2px);
-            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.2);
         }
 
         .hero-image {
@@ -141,14 +142,14 @@
         .hero-image img {
             width: 100%;
             border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 82, 255, 0.3);
+            box-shadow: 0 20px 60px rgba(59, 130, 246, 0.2);
             border: 2px solid var(--border-color);
         }
 
         /* About Section */
         .about {
             padding: 6rem 0;
-            background: var(--card-bg);
+            background: #FFFFFF;
         }
 
         .section-title {
@@ -168,7 +169,7 @@
         }
 
         .about-card {
-            background: var(--dark-bg);
+            background: #F8FAFC;
             padding: 2rem;
             border-radius: 15px;
             border: 1px solid var(--border-color);
@@ -178,7 +179,8 @@
         .about-card:hover {
             transform: translateY(-5px);
             border-color: var(--secondary-color);
-            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.15);
+            background: #FFFFFF;
         }
 
         .about-card h3 {
@@ -188,7 +190,7 @@
         }
 
         .about-card p {
-            color: var(--text-secondary);
+            color: #334155;
             line-height: 1.8;
         }
 
@@ -223,7 +225,7 @@
         }
 
         .project-content p {
-            color: var(--text-secondary);
+            color: #334155;
             margin-bottom: 1.5rem;
             font-size: 1.1rem;
         }
@@ -492,7 +494,7 @@
         <div class="container">
             <h2 class="section-title">Связаться со мной</h2>
             <p style="color: var(--text-secondary); font-size: 1.2rem; margin-bottom: 2rem;">
-                Открыт к новым возможностям, партнёрствам и интересным проектам
+                Хотите сотрудничать? Буду рад! (Работу не ищу)
             </p>
             <div class="social-links">
                 <a href="https://www.linkedin.com/in/gleb-yuchenkov-01b85a105" target="_blank" class="social-link" title="LinkedIn">💼</a>
