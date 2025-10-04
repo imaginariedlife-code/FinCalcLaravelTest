@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinCalc 2.0 - Инвестиционный калькулятор</title>
+
+    <!-- External Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">FinCalc 2.0</h1>
+            <p class="tagline">Инвестиционное планирование нового поколения</p>
+        </div>
+    </header>
+
+    <!-- Main Application -->
+    <main class="app" x-data="finCalcApp()" x-init="init()">
+
+        <!-- Control Panel -->
+        <section class="control-panel">
+            <div class="container">
+                <div class="panel-grid">
+
+                    <!-- Settings -->
+                    <div class="card">
+                        <h3>Параметры планирования</h3>
+                        <div class="form-group">
+                            <label>Горизонт (лет)</label>
+                            <input type="number" x-model.number="settings.horizonYears" min="1" max="50" class="input" @blur="updateSettings('horizonYears', settings.horizonYears)" @input="updateSettings('horizonYears', settings.horizonYears)">
+                        </div>
+                        <div class="form-group">
+                            <label>Инфляция (%)</label>
+                            <input type="number" x-model.number="settings.inflation" step="0.1" class="input" @blur="updateSettings('inflation', settings.inflation)" @input="updateSettings('inflation', settings.inflation)">
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" x-model="settings.showRealValues" @change="updateSettings('showRealValues', settings.showRealValues)">
+                                Расчеты с учетом инфляции
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="card">
+                        <h3>Быстрые действия</h3>
+                        <div class="action-buttons">
+                            <button @click="showAddAsset = true" class="btn btn-primary">+ Добавить актив</button>
+                            <button @click="showAddLiability = true" class="btn btn-danger">- Добавить обязательство</button>
+                            <button @click="showSettings = true" class="btn btn-secondary">⚙️ Настройки</button>
+                        </div>
+                        <hr>
+                        <button @click="exportData()" class="btn btn-secondary">Экспорт данных</button>
+                        <button @click="importData()" class="btn btn-secondary">Импорт данных</button>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content -->
+        <section class="main-content">
+            <div class="container">
+                <div class="content-grid">
+
+                    <!-- Portfolio -->
+                    <div class="card portfolio-card">
+                        <div class="card-header">
+                            <h3>Портфель</h3>
+                            <div class="portfolio-summary">
+                                <div class="portfolio-item">
+                                    <span>Активы: <strong x-text="formatCurrency(portfolio.totalValue)"></strong></span>
+                                </div>
+                                <div class="portfolio-item" x-show="portfolio.totalLiabilities > 0">
+                                    <span>Обязательства: <strong class="text-danger" x-text="formatCurrency(portfolio.totalLiabilities)"></strong></span>
+                                </div>
+                                <div class="portfolio-item portfolio-net">
+                                    <span>Чистая стоимость: <strong x-text="formatCurrency(portfolio.netWorth)"></strong></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="asset-list">
+                                <template x-for="(asset, index) in portfolio.assets" :key="asset.id">
+                                    <div class="asset-card">
+                                        <div class="asset-card-header">
+                                            <div class="asset-icon" :class="asset.type">
+                                                <span x-text="getAssetIcon(asset.type)"></span>
+                                            </div>
+                                            <div class="asset-main-info">
+                                                <input type="text" x-model="asset.name" class="asset-name-input" placeholder="Название актива" @click.stop @blur="updateAssetValue(index, 'name', asset.name)">
+                                                <div class="asset-type-label" x-text="getAssetTypeName(asset.type)"></div>
+                                            </div>
+                                            <div class="asset-value-display">
+                                                <input type="number" x-model.number="asset.value" class="asset-value-input" placeholder="0" @click.stop @blur="updateAssetValue(index, 'value', asset.value)" @input="updateAssetValue(index, 'value', asset.value)">
+                                                <div class="asset-currency">₽</div>
+                                            </div>
+                                            <button @click.stop="removeAsset(index)" class="btn-remove">×</button>
+                                        </div>
+
+                                        <!-- Asset Details (Always Visible) -->
+                                        <div class="asset-card-body">
+                                            <div class="asset-details-grid">
+                                                <div class="asset-detail">
+                                                    <label>Доходность</label>
+                                                    <div class="asset-return-display">
+                                                        <span x-text="formatPercent(getAssetReturn(asset, 'base'))"></span>
+                                                        <small class="text-muted">базовый сценарий</small>
+                                                    </div>
+                                                </div>
+                                                <div class="asset-detail">
+                                                    <label>Риск</label>
+                                                    <div class="asset-risk-display">
+                                                        <span class="risk-indicator" :class="getRiskClass(asset.type)" x-text="getRiskLevel(asset.type)"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="asset-detail">
+                                                    <label>Ликвидность</label>
+                                                    <div class="asset-liquidity-display">
+                                                        <span x-text="getLiquidityLevel(asset.type)"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="asset-detail">
+                                                    <label>Доля в портфеле</label>
+                                                    <div class="asset-weight-display">
+                                                        <span x-text="formatPercent(getAssetWeight(asset))"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Scenario Returns -->
+                                            <div class="asset-scenarios">
+                                                <h5>Сценарии доходности</h5>
+                                                <div class="scenario-returns">
+                                                    <div class="scenario-item pessimistic">
+                                                        <span class="scenario-label">Пессимистичный</span>
+                                                        <span class="scenario-value" x-text="formatPercent(getAssetReturn(asset, 'pessimistic'))"></span>
+                                                    </div>
+                                                    <div class="scenario-item base">
+                                                        <span class="scenario-label">Базовый</span>
+                                                        <span class="scenario-value" x-text="formatPercent(getAssetReturn(asset, 'base'))"></span>
+                                                    </div>
+                                                    <div class="scenario-item optimistic">
+                                                        <span class="scenario-label">Оптимистичный</span>
+                                                        <span class="scenario-value" x-text="formatPercent(getAssetReturn(asset, 'optimistic'))"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <div x-show="portfolio.assets.length === 0" class="empty-state">
+                                    <div class="empty-icon">📊</div>
+                                    <h4>Портфель пуст</h4>
+                                    <p>Добавьте активы для начала планирования</p>
+                                    <button @click="showAddAsset = true" class="btn btn-primary">+ Добавить первый актив</button>
+                                </div>
+                            </div>
+
+                            <!-- Liabilities Section -->
+                            <div class="liability-list" x-show="portfolio.liabilities && portfolio.liabilities.length > 0">
+                                <h4 class="section-title">Обязательства</h4>
+                                <template x-for="(liability, index) in portfolio.liabilities" :key="liability.id">
+                                    <div class="liability-card">
+                                        <div class="liability-card-header">
+                                            <div class="liability-icon" :class="liability.type">
+                                                <span x-text="getLiabilityIcon(liability.type)"></span>
+                                            </div>
+                                            <div class="liability-main-info">
+                                                <input type="text" x-model="liability.name" class="liability-name-input" placeholder="Название обязательства" @click.stop @blur="updateLiabilityValue(index, 'name', liability.name)">
+                                                <div class="liability-type-label" x-text="getLiabilityTypeName(liability.type)"></div>
+                                            </div>
+                                            <div class="liability-balance-display">
+                                                <div class="liability-balance" x-text="formatCurrency(liability.currentBalance)"></div>
+                                                <div class="liability-payment">
+                                                    <small x-text="formatCurrency(liability.monthlyPayment) + '/мес'"></small>
+                                                </div>
+                                            </div>
+                                            <button @click="console.log('Delete button clicked for index:', index); removeLiability(index)" class="btn-remove">×</button>
+                                        </div>
+
+                                        <!-- Liability Details -->
+                                        <div class="liability-card-body">
+                                            <div class="liability-details-grid">
+                                                <div class="liability-detail">
+                                                    <label>Сумма кредита</label>
+                                                    <input type="number" x-model.number="liability.principal" class="liability-principal-input" @blur="updateLiabilityValue(index, 'principal', liability.principal)" @input="updateLiabilityValue(index, 'principal', liability.principal)">
+                                                </div>
+                                                <div class="liability-detail">
+                                                    <label>Ставка (%)</label>
+                                                    <input type="number" step="0.1" x-model.number="liability.rate" class="liability-rate-input" @blur="updateLiabilityValue(index, 'rate', liability.rate)" @input="updateLiabilityValue(index, 'rate', liability.rate)">
+                                                </div>
+                                                <div class="liability-detail">
+                                                    <label>Срок (лет)</label>
+                                                    <input type="number" x-model.number="liability.termYears" class="liability-term-input" @blur="updateLiabilityValue(index, 'termYears', liability.termYears)" @input="updateLiabilityValue(index, 'termYears', liability.termYears)">
+                                                </div>
+                                                <div class="liability-detail">
+                                                    <label>Ежемесячный платеж</label>
+                                                    <div class="liability-payment-display">
+                                                        <span x-text="formatCurrency(liability.monthlyPayment)"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Future Balance -->
+                                            <div class="liability-projection">
+                                                <h5>Остаток через <span x-text="settings.horizonYears"></span> лет</h5>
+                                                <div class="future-balance">
+                                                    <span x-text="formatCurrency(getLiabilityBalance(liability, settings.horizonYears))"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Analytics Section Tab Switcher -->
+                <div class="tab-switcher">
+                    <button
+                        @click="switchTab('portfolio')"
+                        :class="{ 'active': activeTab === 'portfolio' }"
+                        class="tab-button">
+                        Портфель в целом
+                    </button>
+                    <button
+                        @click="switchTab('assets')"
+                        :class="{ 'active': activeTab === 'assets' }"
+                        class="tab-button"
+                        :disabled="portfolio.assets.length === 0">
+                        Детально по активам
+                    </button>
+                </div>
+
+                <!-- Analytics Content -->
+                <div class="analytics-content">
+
+                    <!-- Portfolio Overview Tab -->
+                    <div x-show="activeTab === 'portfolio'" class="tab-content">
+                        <!-- Charts -->
+                        <div class="card chart-card">
+                        <div class="card-header">
+                            <h3>Прогноз развития</h3>
+                            <div class="chart-controls">
+                                <label>
+                                    <input type="radio" name="chartType" value="scenarios" x-model="chartType" @change="updateCharts()" checked>
+                                    Сценарии
+                                </label>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas x-ref="mainChart"></canvas>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+
+                    <!-- Asset Comparison Tab -->
+                    <div x-show="activeTab === 'assets'" class="tab-content">
+                        <!-- Scenario Selector -->
+                        <div class="card asset-comparison-chart">
+                            <div class="card-header">
+                                <h3>Сравнение активов</h3>
+                                <div class="scenario-selector">
+                                    <button
+                                        @click="selectScenario('pessimistic')"
+                                        :class="{ 'active': selectedScenario === 'pessimistic' }"
+                                        class="scenario-button pessimistic">
+                                        Пессимистичный
+                                    </button>
+                                    <button
+                                        @click="selectScenario('base')"
+                                        :class="{ 'active': selectedScenario === 'base' }"
+                                        class="scenario-button base">
+                                        Базовый
+                                    </button>
+                                    <button
+                                        @click="selectScenario('optimistic')"
+                                        :class="{ 'active': selectedScenario === 'optimistic' }"
+                                        class="scenario-button optimistic">
+                                        Оптимистичный
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas x-ref="assetChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Asset Comparison Table -->
+                        <div class="card" x-show="Object.keys(detailedProjections.assets).length > 0">
+                            <div class="card-header">
+                                <h3>Детальные расчеты по активам</h3>
+                                <div class="table-controls">
+                                    <label>
+                                        <input type="checkbox" x-model="settings.showRealValues" @change="updateSettings('showRealValues', settings.showRealValues); updateAssetChart()">
+                                        Показать реальные значения
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <!-- Desktop Table -->
+                                <div class="table-container">
+                                    <table class="calculations-table asset-comparison-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Год</th>
+                                                <template x-for="(asset, assetId) in detailedProjections.assets" :key="assetId">
+                                                    <th x-text="asset.name" :class="`asset-${asset.type}`"></th>
+                                                </template>
+                                                <th x-show="portfolio.liabilities && portfolio.liabilities.length > 0" class="liability-column">Обязательства</th>
+                                                <th class="total-column">Чистая стоимость</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="year in Array.from({length: settings.horizonYears + 1}, (_, i) => i)" :key="year">
+                                                <tr>
+                                                    <td x-text="year" class="year-column"></td>
+                                                    <template x-for="(asset, assetId) in detailedProjections.assets" :key="assetId">
+                                                        <td x-text="formatCurrency(getAssetValueForYear(asset, selectedScenario, year))" :class="`asset-${asset.type}`"></td>
+                                                    </template>
+                                                    <td x-show="portfolio.liabilities && portfolio.liabilities.length > 0"
+                                                        x-text="formatCurrency(getLiabilityValueForYear(year))"
+                                                        class="liability-column text-danger"></td>
+                                                    <td x-text="formatCurrency(getNetWorthForYear(year))"
+                                                        class="total-column"
+                                                        :class="getNetWorthForYear(year) >= 0 ? 'text-success' : 'text-danger'"></td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Mobile Cards -->
+                                <div class="mobile-asset-cards">
+                                    <template x-for="year in Array.from({length: showAllMobileYears ? settings.horizonYears + 1 : Math.min(settings.horizonYears + 1, 6)}, (_, i) => i)" :key="year">
+                                        <div class="mobile-year-card">
+                                            <div class="mobile-year-header">
+                                                <span x-text="`Год ${year}`"></span>
+                                            </div>
+                                            <div class="mobile-asset-grid">
+                                                <template x-for="(asset, assetId) in detailedProjections.assets" :key="assetId">
+                                                    <div class="mobile-asset-item" :class="asset.type">
+                                                        <div class="mobile-asset-name" x-text="asset.name"></div>
+                                                        <div class="mobile-asset-value" x-text="formatCurrency(getAssetValueForYear(asset, selectedScenario, year))"></div>
+                                                    </div>
+                                                </template>
+                                                <div x-show="portfolio.liabilities && portfolio.liabilities.length > 0" class="mobile-asset-item liability">
+                                                    <div class="mobile-asset-name">Обязательства</div>
+                                                    <div class="mobile-asset-value" x-text="formatCurrency(getLiabilityValueForYear(year))"></div>
+                                                </div>
+                                                <div class="mobile-asset-item total">
+                                                    <div class="mobile-asset-name">Чистая стоимость</div>
+                                                    <div class="mobile-asset-value" x-text="formatCurrency(getNetWorthForYear(year))"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <!-- Show more button for mobile -->
+                                    <div x-show="settings.horizonYears > 5" class="text-center" style="margin-top: 1rem;">
+                                        <button @click="showAllMobileYears = !showAllMobileYears" class="btn btn-secondary">
+                                            <span x-show="!showAllMobileYears">Показать все годы</span>
+                                            <span x-show="showAllMobileYears">Показать меньше</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Detailed Calculations Table -->
+        <section class="calculations-section" x-show="projections.base && projections.base.length > 0">
+            <div class="container">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Детальные расчеты по годам</h3>
+                        <div class="table-controls">
+                            <label>
+                                <input type="checkbox" x-model="settings.showRealValues" @change="updateSettings('showRealValues', settings.showRealValues)">
+                                Показать реальные значения
+                            </label>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="calculations-table">
+                                <thead>
+                                    <tr>
+                                        <th>Год</th>
+                                        <th>Активы</th>
+                                        <th x-show="portfolio.liabilities && portfolio.liabilities.length > 0">Обязательства</th>
+                                        <th>Чистая стоимость</th>
+                                        <th>Песс.</th>
+                                        <th>Базовый</th>
+                                        <th>Опт.</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="(year, index) in projections.base" :key="`${year.year}-${portfolio.liabilities.length}`">
+                                        <tr>
+                                            <td x-text="year.year"></td>
+                                            <td x-text="formatCurrency(settings.showRealValues ? year.real + (year.liabilities || 0) : year.nominal)"></td>
+                                            <td x-show="portfolio.liabilities && portfolio.liabilities.length > 0"
+                                                x-text="formatCurrency(year.liabilities || 0)"></td>
+                                            <td x-text="formatCurrency(settings.showRealValues ? year.real : (year.netWorth !== undefined ? year.netWorth : year.nominal))"></td>
+                                            <td x-text="formatCurrency(settings.showRealValues ? projections.pessimistic[index]?.real : (projections.pessimistic[index]?.netWorth !== undefined ? projections.pessimistic[index]?.netWorth : projections.pessimistic[index]?.nominal))"></td>
+                                            <td x-text="formatCurrency(settings.showRealValues ? year.real : (year.netWorth !== undefined ? year.netWorth : year.nominal))"></td>
+                                            <td x-text="formatCurrency(settings.showRealValues ? projections.optimistic[index]?.real : (projections.optimistic[index]?.netWorth !== undefined ? projections.optimistic[index]?.netWorth : projections.optimistic[index]?.nominal))"></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Metrics -->
+        <section class="metrics-section">
+            <div class="container">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Текущая стоимость</div>
+                        <div class="metric-value" x-text="formatCurrency(portfolio.totalValue)"></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Через <span x-text="settings.horizonYears"></span> лет</div>
+                        <div class="metric-value" x-text="formatCurrency(projections.future.base)"></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Годовой рост</div>
+                        <div class="metric-value" x-text="formatPercent(projections.growthRate)"></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Риск-скор</div>
+                        <div class="metric-value" x-text="projections.riskScore + '/10'"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Add Asset Modal -->
+        <div x-show="showAddAsset" x-cloak class="modal" @click.self="showAddAsset = false">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Добавить актив</h3>
+                    <button @click="showAddAsset = false" class="btn-close">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="asset-type-selector">
+                        <template x-for="(assetInfo, assetType) in getAllAssetTypes()" :key="assetType">
+                            <div class="asset-type-card" @click="addAsset(assetType); showAddAsset = false"
+                                 :class="assetType">
+                                <div class="asset-type-icon" x-text="assetInfo.icon"></div>
+                                <div class="asset-type-info">
+                                    <h4 x-text="assetInfo.name"></h4>
+                                    <p x-text="assetInfo.description"></p>
+                                    <div class="asset-type-meta">
+                                        <span class="risk-badge" :class="assetInfo.riskLevel" x-text="getRiskLevelText(assetInfo.riskLevel)"></span>
+                                        <span class="liquidity-badge" x-text="getLiquidityText(assetInfo.liquidity)"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div x-show="showSettings" x-cloak class="modal" @click.self="showSettings = false">
+            <div class="modal-content modal-wide">
+                <div class="modal-header">
+                    <h3>Настройки</h3>
+                    <button @click="showSettings = false" class="btn-close">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="settings-grid">
+
+                        <!-- General Settings -->
+                        <div class="settings-section">
+                            <h4>Общие параметры</h4>
+                            <div class="form-group">
+                                <label>Горизонт планирования (лет)</label>
+                                <input type="number" x-model.number="settings.horizonYears" min="1" max="50" class="input" @blur="updateSettings('horizonYears', settings.horizonYears)" @input="updateSettings('horizonYears', settings.horizonYears)">
+                            </div>
+                            <div class="form-group">
+                                <label>Инфляция (%)</label>
+                                <input type="number" x-model.number="settings.inflation" step="0.1" min="0" max="30" class="input" @blur="updateSettings('inflation', settings.inflation)" @input="updateSettings('inflation', settings.inflation)">
+                                <small class="help-text">Базовый уровень инфляции для расчета сценариев</small>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" x-model="settings.showRealValues" @change="updateSettings('showRealValues', settings.showRealValues)">
+                                    Расчеты с учетом инфляции
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Scenario Settings -->
+                        <div class="settings-section">
+                            <h4>Сценарии доходности</h4>
+                            <p class="section-description">
+                                Доходность рассчитывается относительно инфляции.
+                                Например, при инфляции 6% и поправке +5%, итоговая доходность составит 11%.
+                            </p>
+
+                            <div class="scenario-cards">
+                                <template x-for="(assetInfo, assetType) in getAllAssetTypes()" :key="assetType">
+                                    <div class="scenario-card">
+                                        <div class="scenario-card-header">
+                                            <div class="asset-icon-small" :class="assetType">
+                                                <span x-text="assetInfo.icon"></span>
+                                            </div>
+                                            <h5 x-text="assetInfo.name"></h5>
+                                        </div>
+                                        <div class="scenario-adjustments">
+                                            <div class="adjustment-item">
+                                                <label>Пессимистичный</label>
+                                                <div class="adjustment-input-group">
+                                                    <span class="adjustment-sign">инфляция</span>
+                                                    <input type="number" x-model.number="assetInfo.inflationAdjustment.pessimistic"
+                                                           step="0.1" class="adjustment-input" @blur="updateScenarioSettings()">
+                                                    <span class="adjustment-unit">%</span>
+                                                </div>
+                                                <div class="calculated-return">
+                                                    = <span x-text="formatPercent(settings.inflation + assetInfo.inflationAdjustment.pessimistic)"></span>
+                                                </div>
+                                            </div>
+                                            <div class="adjustment-item">
+                                                <label>Базовый</label>
+                                                <div class="adjustment-input-group">
+                                                    <span class="adjustment-sign">инфляция</span>
+                                                    <input type="number" x-model.number="assetInfo.inflationAdjustment.base"
+                                                           step="0.1" class="adjustment-input" @blur="updateScenarioSettings()">
+                                                    <span class="adjustment-unit">%</span>
+                                                </div>
+                                                <div class="calculated-return">
+                                                    = <span x-text="formatPercent(settings.inflation + assetInfo.inflationAdjustment.base)"></span>
+                                                </div>
+                                            </div>
+                                            <div class="adjustment-item">
+                                                <label>Оптимистичный</label>
+                                                <div class="adjustment-input-group">
+                                                    <span class="adjustment-sign">инфляция</span>
+                                                    <input type="number" x-model.number="assetInfo.inflationAdjustment.optimistic"
+                                                           step="0.1" class="adjustment-input" @blur="updateScenarioSettings()">
+                                                    <span class="adjustment-unit">%</span>
+                                                </div>
+                                                <div class="calculated-return">
+                                                    = <span x-text="formatPercent(settings.inflation + assetInfo.inflationAdjustment.optimistic)"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button @click="showSettings = false" class="btn btn-primary">Сохранить</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Liability Modal -->
+        <div x-show="showAddLiability" x-cloak class="modal" @click.self="showAddLiability = false">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Добавить обязательство</h3>
+                    <button @click="showAddLiability = false" class="btn-close">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="liability-type-selector">
+                        <template x-for="(liabilityInfo, liabilityType) in getAllLiabilityTypes()" :key="liabilityType">
+                            <div class="liability-type-card"
+                                 @click="addLiability(liabilityType, 1000000, liabilityInfo.defaultRate, liabilityInfo.defaultTerm); showAddLiability = false"
+                                 :class="liabilityType">
+                                <div class="liability-type-icon" x-text="liabilityInfo.icon"></div>
+                                <div class="liability-type-info">
+                                    <h4 x-text="liabilityInfo.name"></h4>
+                                    <p x-text="liabilityInfo.description"></p>
+                                    <div class="liability-type-meta">
+                                        <span class="rate-badge">
+                                            Ставка: <span x-text="liabilityInfo.defaultRate + '%'"></span>
+                                        </span>
+                                        <span class="term-badge">
+                                            Срок: <span x-text="liabilityInfo.defaultTerm + ' лет'"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Core Scripts -->
+    <script src="src/core/EventBus.js"></script>
+    <script src="src/core/DataManager.js"></script>
+    <script src="src/core/FinancialEngine.js"></script>
+    <script src="src/components/ChartManager.js"></script>
+    <script src="src/data/AssetClasses.js"></script>
+    <script src="src/data/LiabilityClasses.js"></script>
+    <script src="src/utils/formatters.js"></script>
+    <script src="src/utils/calculations.js"></script>
+
+    <!-- Main Application -->
+    <script src="src/app.js"></script>
+
+</body>
+</html>

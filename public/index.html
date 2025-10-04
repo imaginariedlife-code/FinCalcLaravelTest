@@ -3,635 +3,514 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinCalc 2.0 - Инвестиционный калькулятор</title>
+    <title>Глеб Юченков — Финтех-энтузиаст | gleb.finance</title>
+    <meta name="description" content="Глеб Юченков — руководитель инвестиционных продуктов на Московской бирже, триатлет, финишировавший Ironman, победитель Forbes 30 до 30">
 
-    <!-- External Dependencies -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #0052FF;
+            --secondary-color: #00D4FF;
+            --dark-bg: #0A0E27;
+            --card-bg: #141938;
+            --text-primary: #FFFFFF;
+            --text-secondary: #B8C5D0;
+            --accent-gradient: linear-gradient(135deg, #0052FF 0%, #00D4FF 100%);
+            --border-color: rgba(0, 212, 255, 0.2);
+        }
 
-    <!-- Styles -->
-    <link rel="stylesheet" href="assets/styles.css">
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0A0E27 0%, #141938 50%, #0A0E27 100%);
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(0, 82, 255, 0.15) 0%, transparent 70%);
+            top: -250px;
+            right: -250px;
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, transparent 70%);
+            bottom: -200px;
+            left: -200px;
+            animation: pulse 6s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-text h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-text .subtitle {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-weight: 300;
+        }
+
+        .hero-text .tagline {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            margin-bottom: 2rem;
+            line-height: 1.8;
+        }
+
+        .achievements {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .badge {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1.5rem;
+            border-radius: 2rem;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .badge:hover {
+            border-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.2);
+        }
+
+        .hero-image {
+            position: relative;
+        }
+
+        .hero-image img {
+            width: 100%;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 82, 255, 0.3);
+            border: 2px solid var(--border-color);
+        }
+
+        /* About Section */
+        .about {
+            padding: 6rem 0;
+            background: var(--card-bg);
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            text-align: center;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .about-card {
+            background: var(--dark-bg);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .about-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--secondary-color);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+        }
+
+        .about-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--secondary-color);
+        }
+
+        .about-card p {
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        /* Projects Section */
+        .projects {
+            padding: 6rem 0;
+            background: var(--dark-bg);
+        }
+
+        .project-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 82, 255, 0.3);
+        }
+
+        .project-content {
+            padding: 2.5rem;
+        }
+
+        .project-content h3 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .project-content p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            background: var(--accent-gradient);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 82, 255, 0.4);
+        }
+
+        /* Media Section */
+        .media {
+            padding: 6rem 0;
+            background: var(--card-bg);
+        }
+
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .media-item {
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .media-item:hover {
+            transform: scale(1.02);
+            border-color: var(--secondary-color);
+        }
+
+        .media-item img,
+        .media-item video {
+            width: 100%;
+            display: block;
+        }
+
+        /* Contact Section */
+        .contact {
+            padding: 6rem 0;
+            background: var(--dark-bg);
+            text-align: center;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .social-link {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .social-link:hover {
+            background: var(--accent-gradient);
+            border-color: transparent;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 82, 255, 0.4);
+        }
+
+        /* Footer */
+        footer {
+            padding: 2rem 0;
+            text-align: center;
+            background: var(--card-bg);
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .hero-text h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-text .subtitle {
+                font-size: 1.2rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .about-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .media-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+        }
+
+        /* Smooth scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
+    <!-- Hero Section -->
+    <section class="hero">
         <div class="container">
-            <h1 class="logo">FinCalc 2.0</h1>
-            <p class="tagline">Инвестиционное планирование нового поколения</p>
-        </div>
-    </header>
-
-    <!-- Main Application -->
-    <main class="app" x-data="finCalcApp()" x-init="init()">
-
-        <!-- Control Panel -->
-        <section class="control-panel">
-            <div class="container">
-                <div class="panel-grid">
-
-                    <!-- Settings -->
-                    <div class="card">
-                        <h3>Параметры планирования</h3>
-                        <div class="form-group">
-                            <label>Горизонт (лет)</label>
-                            <input type="number" x-model.number="settings.horizonYears" min="1" max="50" class="input" @blur="updateSettings('horizonYears', settings.horizonYears)" @input="updateSettings('horizonYears', settings.horizonYears)">
-                        </div>
-                        <div class="form-group">
-                            <label>Инфляция (%)</label>
-                            <input type="number" x-model.number="settings.inflation" step="0.1" class="input" @blur="updateSettings('inflation', settings.inflation)" @input="updateSettings('inflation', settings.inflation)">
-                        </div>
-                        <div class="form-group">
-                            <label>
-                                <input type="checkbox" x-model="settings.showRealValues" @change="updateSettings('showRealValues', settings.showRealValues)">
-                                Расчеты с учетом инфляции
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Quick Actions -->
-                    <div class="card">
-                        <h3>Быстрые действия</h3>
-                        <div class="action-buttons">
-                            <button @click="showAddAsset = true" class="btn btn-primary">+ Добавить актив</button>
-                            <button @click="showAddLiability = true" class="btn btn-danger">- Добавить обязательство</button>
-                            <button @click="showSettings = true" class="btn btn-secondary">⚙️ Настройки</button>
-                        </div>
-                        <hr>
-                        <button @click="exportData()" class="btn btn-secondary">Экспорт данных</button>
-                        <button @click="importData()" class="btn btn-secondary">Импорт данных</button>
-                    </div>
-
-                </div>
-            </div>
-        </section>
-
-        <!-- Main Content -->
-        <section class="main-content">
-            <div class="container">
-                <div class="content-grid">
-
-                    <!-- Portfolio -->
-                    <div class="card portfolio-card">
-                        <div class="card-header">
-                            <h3>Портфель</h3>
-                            <div class="portfolio-summary">
-                                <div class="portfolio-item">
-                                    <span>Активы: <strong x-text="formatCurrency(portfolio.totalValue)"></strong></span>
-                                </div>
-                                <div class="portfolio-item" x-show="portfolio.totalLiabilities > 0">
-                                    <span>Обязательства: <strong class="text-danger" x-text="formatCurrency(portfolio.totalLiabilities)"></strong></span>
-                                </div>
-                                <div class="portfolio-item portfolio-net">
-                                    <span>Чистая стоимость: <strong x-text="formatCurrency(portfolio.netWorth)"></strong></span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="asset-list">
-                                <template x-for="(asset, index) in portfolio.assets" :key="asset.id">
-                                    <div class="asset-card">
-                                        <div class="asset-card-header">
-                                            <div class="asset-icon" :class="asset.type">
-                                                <span x-text="getAssetIcon(asset.type)"></span>
-                                            </div>
-                                            <div class="asset-main-info">
-                                                <input type="text" x-model="asset.name" class="asset-name-input" placeholder="Название актива" @click.stop @blur="updateAssetValue(index, 'name', asset.name)">
-                                                <div class="asset-type-label" x-text="getAssetTypeName(asset.type)"></div>
-                                            </div>
-                                            <div class="asset-value-display">
-                                                <input type="number" x-model.number="asset.value" class="asset-value-input" placeholder="0" @click.stop @blur="updateAssetValue(index, 'value', asset.value)" @input="updateAssetValue(index, 'value', asset.value)">
-                                                <div class="asset-currency">₽</div>
-                                            </div>
-                                            <button @click.stop="removeAsset(index)" class="btn-remove">×</button>
-                                        </div>
-
-                                        <!-- Asset Details (Always Visible) -->
-                                        <div class="asset-card-body">
-                                            <div class="asset-details-grid">
-                                                <div class="asset-detail">
-                                                    <label>Доходность</label>
-                                                    <div class="asset-return-display">
-                                                        <span x-text="formatPercent(getAssetReturn(asset, 'base'))"></span>
-                                                        <small class="text-muted">базовый сценарий</small>
-                                                    </div>
-                                                </div>
-                                                <div class="asset-detail">
-                                                    <label>Риск</label>
-                                                    <div class="asset-risk-display">
-                                                        <span class="risk-indicator" :class="getRiskClass(asset.type)" x-text="getRiskLevel(asset.type)"></span>
-                                                    </div>
-                                                </div>
-                                                <div class="asset-detail">
-                                                    <label>Ликвидность</label>
-                                                    <div class="asset-liquidity-display">
-                                                        <span x-text="getLiquidityLevel(asset.type)"></span>
-                                                    </div>
-                                                </div>
-                                                <div class="asset-detail">
-                                                    <label>Доля в портфеле</label>
-                                                    <div class="asset-weight-display">
-                                                        <span x-text="formatPercent(getAssetWeight(asset))"></span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Scenario Returns -->
-                                            <div class="asset-scenarios">
-                                                <h5>Сценарии доходности</h5>
-                                                <div class="scenario-returns">
-                                                    <div class="scenario-item pessimistic">
-                                                        <span class="scenario-label">Пессимистичный</span>
-                                                        <span class="scenario-value" x-text="formatPercent(getAssetReturn(asset, 'pessimistic'))"></span>
-                                                    </div>
-                                                    <div class="scenario-item base">
-                                                        <span class="scenario-label">Базовый</span>
-                                                        <span class="scenario-value" x-text="formatPercent(getAssetReturn(asset, 'base'))"></span>
-                                                    </div>
-                                                    <div class="scenario-item optimistic">
-                                                        <span class="scenario-label">Оптимистичный</span>
-                                                        <span class="scenario-value" x-text="formatPercent(getAssetReturn(asset, 'optimistic'))"></span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </template>
-
-                                <div x-show="portfolio.assets.length === 0" class="empty-state">
-                                    <div class="empty-icon">📊</div>
-                                    <h4>Портфель пуст</h4>
-                                    <p>Добавьте активы для начала планирования</p>
-                                    <button @click="showAddAsset = true" class="btn btn-primary">+ Добавить первый актив</button>
-                                </div>
-                            </div>
-
-                            <!-- Liabilities Section -->
-                            <div class="liability-list" x-show="portfolio.liabilities && portfolio.liabilities.length > 0">
-                                <h4 class="section-title">Обязательства</h4>
-                                <template x-for="(liability, index) in portfolio.liabilities" :key="liability.id">
-                                    <div class="liability-card">
-                                        <div class="liability-card-header">
-                                            <div class="liability-icon" :class="liability.type">
-                                                <span x-text="getLiabilityIcon(liability.type)"></span>
-                                            </div>
-                                            <div class="liability-main-info">
-                                                <input type="text" x-model="liability.name" class="liability-name-input" placeholder="Название обязательства" @click.stop @blur="updateLiabilityValue(index, 'name', liability.name)">
-                                                <div class="liability-type-label" x-text="getLiabilityTypeName(liability.type)"></div>
-                                            </div>
-                                            <div class="liability-balance-display">
-                                                <div class="liability-balance" x-text="formatCurrency(liability.currentBalance)"></div>
-                                                <div class="liability-payment">
-                                                    <small x-text="formatCurrency(liability.monthlyPayment) + '/мес'"></small>
-                                                </div>
-                                            </div>
-                                            <button @click="console.log('Delete button clicked for index:', index); removeLiability(index)" class="btn-remove">×</button>
-                                        </div>
-
-                                        <!-- Liability Details -->
-                                        <div class="liability-card-body">
-                                            <div class="liability-details-grid">
-                                                <div class="liability-detail">
-                                                    <label>Сумма кредита</label>
-                                                    <input type="number" x-model.number="liability.principal" class="liability-principal-input" @blur="updateLiabilityValue(index, 'principal', liability.principal)" @input="updateLiabilityValue(index, 'principal', liability.principal)">
-                                                </div>
-                                                <div class="liability-detail">
-                                                    <label>Ставка (%)</label>
-                                                    <input type="number" step="0.1" x-model.number="liability.rate" class="liability-rate-input" @blur="updateLiabilityValue(index, 'rate', liability.rate)" @input="updateLiabilityValue(index, 'rate', liability.rate)">
-                                                </div>
-                                                <div class="liability-detail">
-                                                    <label>Срок (лет)</label>
-                                                    <input type="number" x-model.number="liability.termYears" class="liability-term-input" @blur="updateLiabilityValue(index, 'termYears', liability.termYears)" @input="updateLiabilityValue(index, 'termYears', liability.termYears)">
-                                                </div>
-                                                <div class="liability-detail">
-                                                    <label>Ежемесячный платеж</label>
-                                                    <div class="liability-payment-display">
-                                                        <span x-text="formatCurrency(liability.monthlyPayment)"></span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Future Balance -->
-                                            <div class="liability-projection">
-                                                <h5>Остаток через <span x-text="settings.horizonYears"></span> лет</h5>
-                                                <div class="future-balance">
-                                                    <span x-text="formatCurrency(getLiabilityBalance(liability, settings.horizonYears))"></span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Analytics Section Tab Switcher -->
-                <div class="tab-switcher">
-                    <button
-                        @click="switchTab('portfolio')"
-                        :class="{ 'active': activeTab === 'portfolio' }"
-                        class="tab-button">
-                        Портфель в целом
-                    </button>
-                    <button
-                        @click="switchTab('assets')"
-                        :class="{ 'active': activeTab === 'assets' }"
-                        class="tab-button"
-                        :disabled="portfolio.assets.length === 0">
-                        Детально по активам
-                    </button>
-                </div>
-
-                <!-- Analytics Content -->
-                <div class="analytics-content">
-
-                    <!-- Portfolio Overview Tab -->
-                    <div x-show="activeTab === 'portfolio'" class="tab-content">
-                        <!-- Charts -->
-                        <div class="card chart-card">
-                        <div class="card-header">
-                            <h3>Прогноз развития</h3>
-                            <div class="chart-controls">
-                                <label>
-                                    <input type="radio" name="chartType" value="scenarios" x-model="chartType" @change="updateCharts()" checked>
-                                    Сценарии
-                                </label>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="chart-container">
-                                <canvas x-ref="mainChart"></canvas>
-                            </div>
-                        </div>
-                        </div>
-                    </div>
-
-                    <!-- Asset Comparison Tab -->
-                    <div x-show="activeTab === 'assets'" class="tab-content">
-                        <!-- Scenario Selector -->
-                        <div class="card asset-comparison-chart">
-                            <div class="card-header">
-                                <h3>Сравнение активов</h3>
-                                <div class="scenario-selector">
-                                    <button
-                                        @click="selectScenario('pessimistic')"
-                                        :class="{ 'active': selectedScenario === 'pessimistic' }"
-                                        class="scenario-button pessimistic">
-                                        Пессимистичный
-                                    </button>
-                                    <button
-                                        @click="selectScenario('base')"
-                                        :class="{ 'active': selectedScenario === 'base' }"
-                                        class="scenario-button base">
-                                        Базовый
-                                    </button>
-                                    <button
-                                        @click="selectScenario('optimistic')"
-                                        :class="{ 'active': selectedScenario === 'optimistic' }"
-                                        class="scenario-button optimistic">
-                                        Оптимистичный
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <div class="chart-container">
-                                    <canvas x-ref="assetChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Asset Comparison Table -->
-                        <div class="card" x-show="Object.keys(detailedProjections.assets).length > 0">
-                            <div class="card-header">
-                                <h3>Детальные расчеты по активам</h3>
-                                <div class="table-controls">
-                                    <label>
-                                        <input type="checkbox" x-model="settings.showRealValues" @change="updateSettings('showRealValues', settings.showRealValues); updateAssetChart()">
-                                        Показать реальные значения
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <!-- Desktop Table -->
-                                <div class="table-container">
-                                    <table class="calculations-table asset-comparison-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Год</th>
-                                                <template x-for="(asset, assetId) in detailedProjections.assets" :key="assetId">
-                                                    <th x-text="asset.name" :class="`asset-${asset.type}`"></th>
-                                                </template>
-                                                <th x-show="portfolio.liabilities && portfolio.liabilities.length > 0" class="liability-column">Обязательства</th>
-                                                <th class="total-column">Чистая стоимость</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <template x-for="year in Array.from({length: settings.horizonYears + 1}, (_, i) => i)" :key="year">
-                                                <tr>
-                                                    <td x-text="year" class="year-column"></td>
-                                                    <template x-for="(asset, assetId) in detailedProjections.assets" :key="assetId">
-                                                        <td x-text="formatCurrency(getAssetValueForYear(asset, selectedScenario, year))" :class="`asset-${asset.type}`"></td>
-                                                    </template>
-                                                    <td x-show="portfolio.liabilities && portfolio.liabilities.length > 0"
-                                                        x-text="formatCurrency(getLiabilityValueForYear(year))"
-                                                        class="liability-column text-danger"></td>
-                                                    <td x-text="formatCurrency(getNetWorthForYear(year))"
-                                                        class="total-column"
-                                                        :class="getNetWorthForYear(year) >= 0 ? 'text-success' : 'text-danger'"></td>
-                                                </tr>
-                                            </template>
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                <!-- Mobile Cards -->
-                                <div class="mobile-asset-cards">
-                                    <template x-for="year in Array.from({length: showAllMobileYears ? settings.horizonYears + 1 : Math.min(settings.horizonYears + 1, 6)}, (_, i) => i)" :key="year">
-                                        <div class="mobile-year-card">
-                                            <div class="mobile-year-header">
-                                                <span x-text="`Год ${year}`"></span>
-                                            </div>
-                                            <div class="mobile-asset-grid">
-                                                <template x-for="(asset, assetId) in detailedProjections.assets" :key="assetId">
-                                                    <div class="mobile-asset-item" :class="asset.type">
-                                                        <div class="mobile-asset-name" x-text="asset.name"></div>
-                                                        <div class="mobile-asset-value" x-text="formatCurrency(getAssetValueForYear(asset, selectedScenario, year))"></div>
-                                                    </div>
-                                                </template>
-                                                <div x-show="portfolio.liabilities && portfolio.liabilities.length > 0" class="mobile-asset-item liability">
-                                                    <div class="mobile-asset-name">Обязательства</div>
-                                                    <div class="mobile-asset-value" x-text="formatCurrency(getLiabilityValueForYear(year))"></div>
-                                                </div>
-                                                <div class="mobile-asset-item total">
-                                                    <div class="mobile-asset-name">Чистая стоимость</div>
-                                                    <div class="mobile-asset-value" x-text="formatCurrency(getNetWorthForYear(year))"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </template>
-
-                                    <!-- Show more button for mobile -->
-                                    <div x-show="settings.horizonYears > 5" class="text-center" style="margin-top: 1rem;">
-                                        <button @click="showAllMobileYears = !showAllMobileYears" class="btn btn-secondary">
-                                            <span x-show="!showAllMobileYears">Показать все годы</span>
-                                            <span x-show="showAllMobileYears">Показать меньше</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </section>
-
-        <!-- Detailed Calculations Table -->
-        <section class="calculations-section" x-show="projections.base && projections.base.length > 0">
-            <div class="container">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Детальные расчеты по годам</h3>
-                        <div class="table-controls">
-                            <label>
-                                <input type="checkbox" x-model="settings.showRealValues" @change="updateSettings('showRealValues', settings.showRealValues)">
-                                Показать реальные значения
-                            </label>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-container">
-                            <table class="calculations-table">
-                                <thead>
-                                    <tr>
-                                        <th>Год</th>
-                                        <th>Активы</th>
-                                        <th x-show="portfolio.liabilities && portfolio.liabilities.length > 0">Обязательства</th>
-                                        <th>Чистая стоимость</th>
-                                        <th>Песс.</th>
-                                        <th>Базовый</th>
-                                        <th>Опт.</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <template x-for="(year, index) in projections.base" :key="`${year.year}-${portfolio.liabilities.length}`">
-                                        <tr>
-                                            <td x-text="year.year"></td>
-                                            <td x-text="formatCurrency(settings.showRealValues ? year.real + (year.liabilities || 0) : year.nominal)"></td>
-                                            <td x-show="portfolio.liabilities && portfolio.liabilities.length > 0"
-                                                x-text="formatCurrency(year.liabilities || 0)"></td>
-                                            <td x-text="formatCurrency(settings.showRealValues ? year.real : (year.netWorth !== undefined ? year.netWorth : year.nominal))"></td>
-                                            <td x-text="formatCurrency(settings.showRealValues ? projections.pessimistic[index]?.real : (projections.pessimistic[index]?.netWorth !== undefined ? projections.pessimistic[index]?.netWorth : projections.pessimistic[index]?.nominal))"></td>
-                                            <td x-text="formatCurrency(settings.showRealValues ? year.real : (year.netWorth !== undefined ? year.netWorth : year.nominal))"></td>
-                                            <td x-text="formatCurrency(settings.showRealValues ? projections.optimistic[index]?.real : (projections.optimistic[index]?.netWorth !== undefined ? projections.optimistic[index]?.netWorth : projections.optimistic[index]?.nominal))"></td>
-                                        </tr>
-                                    </template>
-                                </tbody>
-                            </table>
-                        </div>
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>Глеб Юченков</h1>
+                    <p class="subtitle">Финтех-энтузиаст. Триатлет. Инвестор.</p>
+                    <p class="tagline">
+                        Руководитель инвестиционных продуктов на маркетплейсе «Финуслуги» Московской биржи.
+                        Победитель Forbes 30 до 30 в номинации «Финансы и инвестиции» (2025).
+                        Выпускник МГИМО — Факультета МЭО и Европейского учебного института.
+                    </p>
+                    <div class="achievements">
+                        <span class="badge">🏆 Forbes 30 до 30</span>
+                        <span class="badge">🏊 Ironman Finisher</span>
+                        <span class="badge">🎓 МГИМО</span>
+                        <span class="badge">📚 Автор</span>
+                        <span class="badge">💼 Директор по продукту</span>
                     </div>
                 </div>
-            </div>
-        </section>
-
-        <!-- Key Metrics -->
-        <section class="metrics-section">
-            <div class="container">
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <div class="metric-label">Текущая стоимость</div>
-                        <div class="metric-value" x-text="formatCurrency(portfolio.totalValue)"></div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-label">Через <span x-text="settings.horizonYears"></span> лет</div>
-                        <div class="metric-value" x-text="formatCurrency(projections.future.base)"></div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-label">Годовой рост</div>
-                        <div class="metric-value" x-text="formatPercent(projections.growthRate)"></div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-label">Риск-скор</div>
-                        <div class="metric-value" x-text="projections.riskScore + '/10'"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Add Asset Modal -->
-        <div x-show="showAddAsset" x-cloak class="modal" @click.self="showAddAsset = false">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Добавить актив</h3>
-                    <button @click="showAddAsset = false" class="btn-close">×</button>
-                </div>
-                <div class="modal-body">
-                    <div class="asset-type-selector">
-                        <template x-for="(assetInfo, assetType) in getAllAssetTypes()" :key="assetType">
-                            <div class="asset-type-card" @click="addAsset(assetType); showAddAsset = false"
-                                 :class="assetType">
-                                <div class="asset-type-icon" x-text="assetInfo.icon"></div>
-                                <div class="asset-type-info">
-                                    <h4 x-text="assetInfo.name"></h4>
-                                    <p x-text="assetInfo.description"></p>
-                                    <div class="asset-type-meta">
-                                        <span class="risk-badge" :class="assetInfo.riskLevel" x-text="getRiskLevelText(assetInfo.riskLevel)"></span>
-                                        <span class="liquidity-badge" x-text="getLiquidityText(assetInfo.liquidity)"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
+                <div class="hero-image">
+                    <img src="media/gleb-photo-1.jpg" alt="Глеб Юченков">
                 </div>
             </div>
         </div>
+    </section>
 
-        <!-- Settings Modal -->
-        <div x-show="showSettings" x-cloak class="modal" @click.self="showSettings = false">
-            <div class="modal-content modal-wide">
-                <div class="modal-header">
-                    <h3>Настройки</h3>
-                    <button @click="showSettings = false" class="btn-close">×</button>
+    <!-- About Section -->
+    <section class="about">
+        <div class="container">
+            <h2 class="section-title">Обо мне</h2>
+            <div class="about-grid">
+                <div class="about-card">
+                    <h3>💼 Финтех-карьера</h3>
+                    <p>
+                        Эксперт в запуске и развитии финтех-продуктов: от народных облигаций до авторских фондов
+                        и маркетплейса ПИФов. Развиваю направление цифровых инвестиций на «Финуслугах»,
+                        где объединяю опыт продуктовой команды и фокус на реальных потребностях инвесторов.
+                    </p>
                 </div>
-                <div class="modal-body">
-                    <div class="settings-grid">
-
-                        <!-- General Settings -->
-                        <div class="settings-section">
-                            <h4>Общие параметры</h4>
-                            <div class="form-group">
-                                <label>Горизонт планирования (лет)</label>
-                                <input type="number" x-model.number="settings.horizonYears" min="1" max="50" class="input" @blur="updateSettings('horizonYears', settings.horizonYears)" @input="updateSettings('horizonYears', settings.horizonYears)">
-                            </div>
-                            <div class="form-group">
-                                <label>Инфляция (%)</label>
-                                <input type="number" x-model.number="settings.inflation" step="0.1" min="0" max="30" class="input" @blur="updateSettings('inflation', settings.inflation)" @input="updateSettings('inflation', settings.inflation)">
-                                <small class="help-text">Базовый уровень инфляции для расчета сценариев</small>
-                            </div>
-                            <div class="form-group">
-                                <label>
-                                    <input type="checkbox" x-model="settings.showRealValues" @change="updateSettings('showRealValues', settings.showRealValues)">
-                                    Расчеты с учетом инфляции
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Scenario Settings -->
-                        <div class="settings-section">
-                            <h4>Сценарии доходности</h4>
-                            <p class="section-description">
-                                Доходность рассчитывается относительно инфляции.
-                                Например, при инфляции 6% и поправке +5%, итоговая доходность составит 11%.
-                            </p>
-
-                            <div class="scenario-cards">
-                                <template x-for="(assetInfo, assetType) in getAllAssetTypes()" :key="assetType">
-                                    <div class="scenario-card">
-                                        <div class="scenario-card-header">
-                                            <div class="asset-icon-small" :class="assetType">
-                                                <span x-text="assetInfo.icon"></span>
-                                            </div>
-                                            <h5 x-text="assetInfo.name"></h5>
-                                        </div>
-                                        <div class="scenario-adjustments">
-                                            <div class="adjustment-item">
-                                                <label>Пессимистичный</label>
-                                                <div class="adjustment-input-group">
-                                                    <span class="adjustment-sign">инфляция</span>
-                                                    <input type="number" x-model.number="assetInfo.inflationAdjustment.pessimistic"
-                                                           step="0.1" class="adjustment-input" @blur="updateScenarioSettings()">
-                                                    <span class="adjustment-unit">%</span>
-                                                </div>
-                                                <div class="calculated-return">
-                                                    = <span x-text="formatPercent(settings.inflation + assetInfo.inflationAdjustment.pessimistic)"></span>
-                                                </div>
-                                            </div>
-                                            <div class="adjustment-item">
-                                                <label>Базовый</label>
-                                                <div class="adjustment-input-group">
-                                                    <span class="adjustment-sign">инфляция</span>
-                                                    <input type="number" x-model.number="assetInfo.inflationAdjustment.base"
-                                                           step="0.1" class="adjustment-input" @blur="updateScenarioSettings()">
-                                                    <span class="adjustment-unit">%</span>
-                                                </div>
-                                                <div class="calculated-return">
-                                                    = <span x-text="formatPercent(settings.inflation + assetInfo.inflationAdjustment.base)"></span>
-                                                </div>
-                                            </div>
-                                            <div class="adjustment-item">
-                                                <label>Оптимистичный</label>
-                                                <div class="adjustment-input-group">
-                                                    <span class="adjustment-sign">инфляция</span>
-                                                    <input type="number" x-model.number="assetInfo.inflationAdjustment.optimistic"
-                                                           step="0.1" class="adjustment-input" @blur="updateScenarioSettings()">
-                                                    <span class="adjustment-unit">%</span>
-                                                </div>
-                                                <div class="calculated-return">
-                                                    = <span x-text="formatPercent(settings.inflation + assetInfo.inflationAdjustment.optimistic)"></span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
-                        </div>
-
-                    </div>
+                <div class="about-card">
+                    <h3>🏃 Спорт и дисциплина</h3>
+                    <p>
+                        Триатлет, финишировавший Ironman. Сравниваю инвестиции со спортом — показываю,
+                        как дисциплина и регулярность работают и на длинной дистанции в финансах, и в жизни.
+                        Баланс между профессиональными достижениями и личным развитием.
+                    </p>
                 </div>
-                <div class="modal-footer">
-                    <button @click="showSettings = false" class="btn btn-primary">Сохранить</button>
+                <div class="about-card">
+                    <h3>✍️ Образование и блог</h3>
+                    <p>
+                        Выпускник МГИМО — Факультета МЭО и Европейского учебного института.
+                        Активный участник Экономического Клуба МГИМО - Oeconomicus им. А.В. Макаренко.
+                    </p>
+                    <p style="margin-top: 1rem;">
+                        Автор образовательного Telegram-канала и блога «Дело в деньгах», где объясняю инвестиции
+                        простым языком, показываю реальные кейсы и закулисье создания финтех-продуктов.
+                        Моя цель — сделать управление деньгами понятным и доступным.
+                    </p>
                 </div>
             </div>
         </div>
+    </section>
 
-        <!-- Add Liability Modal -->
-        <div x-show="showAddLiability" x-cloak class="modal" @click.self="showAddLiability = false">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Добавить обязательство</h3>
-                    <button @click="showAddLiability = false" class="btn-close">×</button>
+    <!-- Projects Section -->
+    <section class="projects">
+        <div class="container">
+            <h2 class="section-title">Проекты</h2>
+
+            <div class="project-card">
+                <div class="project-content">
+                    <h3>📱 Telegram-канал «Дело в Деньгах»</h3>
+                    <p>
+                        Здесь инвестиции становятся простыми, понятными и даже немного веселыми.
+                        Я показываю реальные кейсы — как инвестирую сам, разбираю инструменты и объясняю,
+                        зачем нужны фонды, облигации и новые финтех-продукты. Без заумных терминов и скучных лекций —
+                        только живые истории, наглядные примеры и немного самоиронии.
+                    </p>
+                    <p style="margin-top: 1rem;">
+                        <strong>О чем канал:</strong>
+                    </p>
+                    <ul style="color: var(--text-secondary); margin: 1rem 0 1rem 2rem; line-height: 1.8;">
+                        <li>Разбираю инвестиционные инструменты и стратегии простыми словами</li>
+                        <li>Показываю закулисье финтеха: как создаются продукты на «Финуслугах»</li>
+                        <li>Экспериментирую с публичным портфелем и делюсь результатами</li>
+                        <li>Добавляю юмор, спорт и лайфстайл — потому что деньги это не только цифры, но и часть нашей жизни</li>
+                    </ul>
+                    <p style="margin-top: 1rem; color: var(--text-secondary);">
+                        📲 Подписывайтесь на «Дело в Деньгах», если хотите научиться инвестировать без лишнего стресса и сложностей.
+                    </p>
+                    <a href="https://t.me/glyuch_dengi" target="_blank" class="btn">Подписаться на канал →</a>
                 </div>
-                <div class="modal-body">
-                    <div class="liability-type-selector">
-                        <template x-for="(liabilityInfo, liabilityType) in getAllLiabilityTypes()" :key="liabilityType">
-                            <div class="liability-type-card"
-                                 @click="addLiability(liabilityType, 1000000, liabilityInfo.defaultRate, liabilityInfo.defaultTerm); showAddLiability = false"
-                                 :class="liabilityType">
-                                <div class="liability-type-icon" x-text="liabilityInfo.icon"></div>
-                                <div class="liability-type-info">
-                                    <h4 x-text="liabilityInfo.name"></h4>
-                                    <p x-text="liabilityInfo.description"></p>
-                                    <div class="liability-type-meta">
-                                        <span class="rate-badge">
-                                            Ставка: <span x-text="liabilityInfo.defaultRate + '%'"></span>
-                                        </span>
-                                        <span class="term-badge">
-                                            Срок: <span x-text="liabilityInfo.defaultTerm + ' лет'"></span>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
+            </div>
+
+            <div class="project-card">
+                <div class="project-content">
+                    <h3>💼 FinCalc 2.0</h3>
+                    <p>
+                        Современный инвестиционный калькулятор для планирования финансового будущего.
+                        Управляйте портфелем, анализируйте сценарии развития, учитывайте инфляцию
+                        и обязательства — всё в одном инструменте.
+                    </p>
+                    <a href="/FinCalc" class="btn">Открыть FinCalc →</a>
                 </div>
             </div>
         </div>
+    </section>
 
-    </main>
+    <!-- Media Section -->
+    <section class="media">
+        <div class="container">
+            <h2 class="section-title">Медиа</h2>
+            <div class="media-grid">
+                <div class="media-item">
+                    <img src="media/gleb-photo-3.jpg" alt="Глеб Юченков - Выступление">
+                </div>
+                <div class="media-item">
+                    <video controls poster="media/gleb-photo-1.jpg">
+                        <source src="media/gleb-video-2.mp4" type="video/mp4">
+                        Ваш браузер не поддерживает видео.
+                    </video>
+                </div>
+                <div class="media-item">
+                    <video controls>
+                        <source src="media/gleb-video-1.mp4" type="video/mp4">
+                        Ваш браузер не поддерживает видео.
+                    </video>
+                </div>
+            </div>
+        </div>
+    </section>
 
-    <!-- Core Scripts -->
-    <script src="src/core/EventBus.js"></script>
-    <script src="src/core/DataManager.js"></script>
-    <script src="src/core/FinancialEngine.js"></script>
-    <script src="src/components/ChartManager.js"></script>
-    <script src="src/data/AssetClasses.js"></script>
-    <script src="src/data/LiabilityClasses.js"></script>
-    <script src="src/utils/formatters.js"></script>
-    <script src="src/utils/calculations.js"></script>
+    <!-- Contact Section -->
+    <section class="contact">
+        <div class="container">
+            <h2 class="section-title">Связаться со мной</h2>
+            <p style="color: var(--text-secondary); font-size: 1.2rem; margin-bottom: 2rem;">
+                Открыт к новым возможностям, партнёрствам и интересным проектам
+            </p>
+            <div class="social-links">
+                <a href="mailto:gleb@yuchenkov.ru" class="social-link" title="Email">✉️</a>
+            </div>
+        </div>
+    </section>
 
-    <!-- Main Application -->
-    <script src="src/app.js"></script>
-
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Глеб Юченков. Все права защищены.</p>
+        </div>
+    </footer>
 </body>
 </html>
