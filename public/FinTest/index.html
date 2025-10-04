@@ -1,0 +1,2048 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#3B82F6">
+    <title>Финансовый калькулятор</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --tg-theme-bg-color: #ffffff;
+            --tg-theme-text-color: #000000;
+            --tg-theme-hint-color: #999999;
+            --tg-theme-link-color: #3B82F6;
+            --tg-theme-button-color: #3B82F6;
+            --tg-theme-button-text-color: #ffffff;
+            --tg-theme-secondary-bg-color: #f0f0f0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            overscroll-behavior: none;
+            overflow-x: hidden;
+            touch-action: pan-y;
+        }
+
+        .container {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 1rem;
+            padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            padding: 0.5rem 0;
+        }
+
+        .progress-step {
+            flex: 1;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-step.active,
+        .progress-step.completed {
+            background: var(--tg-theme-button-color);
+        }
+
+        .progress-step-label {
+            position: absolute;
+            top: -1.5rem;
+            left: 0;
+            font-size: 0.7rem;
+            color: var(--tg-theme-hint-color);
+            white-space: nowrap;
+        }
+
+        .progress-step.active .progress-step-label {
+            color: var(--tg-theme-button-color);
+            font-weight: 600;
+        }
+
+        /* Steps */
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .step-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--tg-theme-text-color);
+        }
+
+        .step-description {
+            font-size: 0.9rem;
+            color: var(--tg-theme-hint-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .card {
+            background: var(--tg-theme-secondary-bg-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--tg-theme-text-color);
+            margin-bottom: 0.75rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.875rem;
+            font-size: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            color: var(--tg-theme-text-color);
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--tg-theme-button-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: #cbd5e1;
+            opacity: 1;
+        }
+
+        .input-suffix {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--tg-theme-hint-color);
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        /* Slider Styles */
+        .slider-container {
+            padding: 0.5rem 0;
+            touch-action: none;
+        }
+
+        .slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #e2e8f0;
+            outline: none;
+            margin-bottom: 1rem;
+            touch-action: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--tg-theme-button-color);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease;
+        }
+
+        .slider::-webkit-slider-thumb:active {
+            transform: scale(1.2);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--tg-theme-button-color);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            border: none;
+            transition: transform 0.2s ease;
+        }
+
+        .slider::-moz-range-thumb:active {
+            transform: scale(1.2);
+        }
+
+        .slider-value {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--tg-theme-button-color);
+            padding: 0.75rem;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .slider-hint {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--tg-theme-hint-color);
+            margin-top: 0.25rem;
+        }
+
+        /* Savings Display */
+        .savings-card {
+            background: linear-gradient(135deg, #DBEAFE 0%, white 100%);
+            border: 2px solid #93C5FD;
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-top: 1.5rem;
+        }
+
+        .savings-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .savings-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e40af;
+            text-align: center;
+        }
+
+        .savings-value.negative {
+            color: #dc2626;
+        }
+
+        /* Asset Categories */
+        .asset-categories {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .asset-category {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .asset-category:active {
+            transform: scale(0.98);
+        }
+
+        .asset-category.selected {
+            border-color: var(--tg-theme-button-color);
+            background: #eff6ff;
+        }
+
+        .asset-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .asset-category-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--tg-theme-text-color);
+        }
+
+        /* Asset List */
+        .asset-list {
+            margin-top: 1rem;
+        }
+
+        .asset-item {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .asset-item-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 1;
+        }
+
+        .asset-item-icon {
+            font-size: 1.5rem;
+        }
+
+        .asset-item-details {
+            flex: 1;
+        }
+
+        .asset-item-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--tg-theme-text-color);
+        }
+
+        .asset-item-category {
+            font-size: 0.75rem;
+            color: var(--tg-theme-hint-color);
+        }
+
+        .asset-item-amount {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--tg-theme-button-color);
+            margin-right: 0.5rem;
+        }
+
+        .btn-delete {
+            background: transparent;
+            border: none;
+            color: #dc2626;
+            font-size: 1.5rem;
+            padding: 0.25rem;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .btn-delete:active {
+            opacity: 1;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--tg-theme-hint-color);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.5;
+        }
+
+        .total-card {
+            background: linear-gradient(135deg, #D1FAE5 0%, white 100%);
+            border: 2px solid #6EE7B7;
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-top: 1rem;
+        }
+
+        .total-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #065f46;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .total-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #065f46;
+            text-align: center;
+        }
+
+        /* Buttons */
+        .button-group {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--tg-theme-bg-color);
+            padding: 1rem;
+            padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 48px;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+        }
+
+        .btn-primary:disabled {
+            background: #cbd5e1;
+            color: #64748b;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .btn-secondary {
+            background: var(--tg-theme-secondary-bg-color);
+            color: var(--tg-theme-text-color);
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-add {
+            width: 100%;
+            background: white;
+            color: var(--tg-theme-button-color);
+            border: 2px dashed var(--tg-theme-button-color);
+            margin-top: 0.5rem;
+        }
+
+        /* Hidden */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Utility */
+        .mt-2 {
+            margin-top: 1rem;
+        }
+
+        /* Risk Profiles */
+        .risk-profiles {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .risk-profile {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .risk-profile:active {
+            transform: scale(0.98);
+        }
+
+        .risk-profile.selected {
+            border-color: var(--tg-theme-button-color);
+            background: #eff6ff;
+        }
+
+        .risk-profile-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .risk-profile-content {
+            flex: 1;
+        }
+
+        .risk-profile-name {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--tg-theme-text-color);
+            margin-bottom: 0.25rem;
+        }
+
+        .risk-profile-desc {
+            font-size: 0.8rem;
+            color: var(--tg-theme-hint-color);
+        }
+
+        /* Chart Legend */
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+
+        .legend-label {
+            font-size: 0.85rem;
+            color: var(--tg-theme-text-color);
+        }
+
+        /* Chart */
+        .chart-container {
+            width: 100%;
+            height: 250px;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .chart-container svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Toggle */
+        .inflation-toggle {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+        }
+
+        .toggle-input {
+            display: none;
+        }
+
+        .toggle-slider {
+            width: 44px;
+            height: 24px;
+            background: #e2e8f0;
+            border-radius: 12px;
+            position: relative;
+            transition: background 0.3s;
+        }
+
+        .toggle-slider::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+
+        .toggle-input:checked + .toggle-slider {
+            background: var(--tg-theme-button-color);
+        }
+
+        .toggle-input:checked + .toggle-slider::after {
+            transform: translateX(20px);
+        }
+
+        .toggle-text {
+            font-size: 0.9rem;
+            color: var(--tg-theme-text-color);
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .projection-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .projection-table th {
+            background: #f8fafc;
+            padding: 0.75rem 0.5rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        .projection-table td {
+            padding: 0.75rem 0.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .projection-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .projection-table .year-col {
+            font-weight: 600;
+        }
+
+        .projection-table .pessimistic-col {
+            color: #ef4444;
+        }
+
+        .projection-table .base-col {
+            color: #3b82f6;
+        }
+
+        .projection-table .optimistic-col {
+            color: #10b981;
+        }
+
+        /* Info Button */
+        .btn-info {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: white;
+            color: var(--tg-theme-button-color);
+            border: 2px solid var(--tg-theme-button-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-info:active {
+            transform: scale(0.95);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--tg-theme-bg-color);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .modal-header h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--tg-theme-hint-color);
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-body {
+            padding: 1.25rem;
+        }
+
+        .scenario-info-item {
+            margin-bottom: 1.5rem;
+        }
+
+        .scenario-info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .scenario-info-title {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .scenario-info-table {
+            width: 100%;
+            font-size: 0.85rem;
+        }
+
+        .scenario-info-table td {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .scenario-info-table td:first-child {
+            color: var(--tg-theme-hint-color);
+        }
+
+        .scenario-info-table td:last-child {
+            text-align: right;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <div class="progress-step active" id="progress-1">
+                <span class="progress-step-label">1</span>
+            </div>
+            <div class="progress-step" id="progress-2">
+                <span class="progress-step-label">2</span>
+            </div>
+            <div class="progress-step" id="progress-3">
+                <span class="progress-step-label">3</span>
+            </div>
+            <div class="progress-step" id="progress-4">
+                <span class="progress-step-label">4</span>
+            </div>
+        </div>
+
+        <!-- Step 1: Profile -->
+        <div class="step active" id="step-1">
+            <h2 class="step-title">Расскажите о себе</h2>
+            <p class="step-description">Эти данные помогут рассчитать ваш финансовый план</p>
+
+            <div class="card">
+                <div class="form-group">
+                    <label class="form-label">Ваш возраст</label>
+                    <div class="input-group">
+                        <input type="text" class="form-input" id="age" placeholder="30" inputmode="numeric">
+                        <span class="input-suffix">лет</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Ежемесячный доход</label>
+                    <div class="slider-container">
+                        <div class="slider-value" id="incomeValue">100 000 ₽</div>
+                        <input type="range" class="slider" id="incomeSlider" min="0" max="500000" step="5000" value="100000">
+                        <div class="slider-hint">0 ₽ — 500 000 ₽</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Ежемесячные расходы</label>
+                    <div class="slider-container">
+                        <div class="slider-value" id="expensesValue">70 000 ₽</div>
+                        <input type="range" class="slider" id="expensesSlider" min="0" max="500000" step="5000" value="70000">
+                        <div class="slider-hint">0 ₽ — 500 000 ₽</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="savings-card">
+                <div class="savings-label">Ежемесячные сбережения</div>
+                <div class="savings-value" id="savingsValue">30 000 ₽</div>
+            </div>
+        </div>
+
+        <!-- Step 2: Assets -->
+        <div class="step" id="step-2">
+            <h2 class="step-title">Ваши активы</h2>
+            <p class="step-description">Укажите текущие накопления и инвестиции</p>
+
+            <div class="card">
+                <label class="form-label">Выберите категорию актива</label>
+                <div class="asset-categories">
+                    <div class="asset-category" data-type="stocks">
+                        <div class="asset-icon">📈</div>
+                        <div class="asset-category-name">Фонды акций</div>
+                    </div>
+                    <div class="asset-category" data-type="bonds">
+                        <div class="asset-icon">📄</div>
+                        <div class="asset-category-name">Фонды облигаций</div>
+                    </div>
+                    <div class="asset-category" data-type="cash">
+                        <div class="asset-icon">💰</div>
+                        <div class="asset-category-name">Депозиты</div>
+                    </div>
+                    <div class="asset-category" data-type="realty">
+                        <div class="asset-icon">🏠</div>
+                        <div class="asset-category-name">Недвижимость</div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <label class="form-label">Сумма</label>
+                    <div class="input-group">
+                        <input type="text" class="form-input" id="assetAmount" placeholder="100 000" inputmode="numeric">
+                        <span class="input-suffix">₽</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-add" id="btnAddAsset" disabled>
+                    + Добавить актив
+                </button>
+            </div>
+
+            <div class="total-card hidden" id="totalCard">
+                <div class="total-label">Общая стоимость активов</div>
+                <div class="total-value" id="totalValue">0 ₽</div>
+            </div>
+
+            <div class="asset-list" id="assetList"></div>
+        </div>
+
+        <!-- Step 3: Liabilities -->
+        <div class="step" id="step-3">
+            <h2 class="step-title">Обязательства</h2>
+            <p class="step-description">Кредиты, ипотека и другие долговые обязательства</p>
+
+            <div class="card">
+                <div class="form-group">
+                    <label class="form-label">Название обязательства</label>
+                    <input type="text" class="form-input" id="liabilityName" placeholder="Например: Ипотека">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Остаток долга</label>
+                    <div class="input-group">
+                        <input type="text" class="form-input" id="liabilityBalance" placeholder="2 000 000" inputmode="numeric">
+                        <span class="input-suffix">₽</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Процентная ставка</label>
+                    <div class="input-group">
+                        <input type="text" class="form-input" id="liabilityRate" placeholder="10" inputmode="decimal">
+                        <span class="input-suffix">%</span>
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--tg-theme-hint-color); margin-top: 0.5rem;">
+                        Введите ставку или платеж - второе посчитается автоматически
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Срок кредита (остаток)</label>
+                    <div class="input-group">
+                        <input type="text" class="form-input" id="liabilityTerm" placeholder="120" inputmode="numeric">
+                        <span class="input-suffix">мес</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Ежемесячный платеж</label>
+                    <div class="input-group">
+                        <input type="text" class="form-input" id="liabilityPayment" placeholder="0" inputmode="numeric">
+                        <span class="input-suffix">₽</span>
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--tg-theme-hint-color); margin-top: 0.5rem;">
+                        Введите платеж или ставку - второе посчитается автоматически
+                    </div>
+                </div>
+
+                <button class="btn btn-add" id="btnAddLiability" disabled>
+                    + Добавить обязательство
+                </button>
+            </div>
+
+            <div class="total-card hidden" id="totalLiabilitiesCard" style="background: linear-gradient(135deg, #FEE2E2 0%, white 100%); border-color: #FCA5A5;">
+                <div class="total-label" style="color: #991b1b;">Общая сумма долга</div>
+                <div class="total-value" id="totalLiabilitiesValue" style="color: #991b1b;">0 ₽</div>
+            </div>
+
+            <div class="asset-list" id="liabilitiesList"></div>
+
+            <div class="card mt-2">
+                <p style="font-size: 0.85rem; color: var(--tg-theme-hint-color); text-align: center;">
+                    Если у вас нет обязательств, можете пропустить этот шаг
+                </p>
+            </div>
+        </div>
+
+        <!-- Step 4: Planning Horizon & Risk Profile -->
+        <div class="step" id="step-4">
+            <h2 class="step-title">Горизонт планирования</h2>
+            <p class="step-description">На какой срок вы планируете инвестировать</p>
+
+            <div class="card">
+                <div class="form-group">
+                    <label class="form-label">Горизонт инвестирования</label>
+                    <div class="slider-container">
+                        <div class="slider-value" id="horizonValue">5 лет</div>
+                        <input type="range" class="slider" id="horizonSlider" min="3" max="10" step="1" value="5">
+                        <div class="slider-hint">3 года — 10 лет</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Риск-профиль</label>
+                    <div class="risk-profiles">
+                        <div class="risk-profile" data-risk="conservative">
+                            <div class="risk-profile-icon">🛡️</div>
+                            <div class="risk-profile-content">
+                                <div class="risk-profile-name">Консервативный</div>
+                                <div class="risk-profile-desc">Сплю спокойно, минимум рисков</div>
+                            </div>
+                        </div>
+                        <div class="risk-profile" data-risk="moderate">
+                            <div class="risk-profile-icon">⚖️</div>
+                            <div class="risk-profile-content">
+                                <div class="risk-profile-name">Умеренный</div>
+                                <div class="risk-profile-desc">Баланс риска и доходности</div>
+                            </div>
+                        </div>
+                        <div class="risk-profile" data-risk="aggressive">
+                            <div class="risk-profile-icon">🚀</div>
+                            <div class="risk-profile-content">
+                                <div class="risk-profile-name">Агрессивный</div>
+                                <div class="risk-profile-desc">Живу с волатильностью</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Ожидаемая инфляция</label>
+                    <div class="input-group">
+                        <input type="text" class="form-input" id="inflationRate" placeholder="11" inputmode="decimal">
+                        <span class="input-suffix">%</span>
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--tg-theme-hint-color); margin-top: 0.5rem;">
+                        Если не знаете — предлагаем заложить 11%
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Results -->
+        <div class="step" id="step-5">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                <h2 class="step-title" style="margin-bottom: 0;">Ваш прогноз</h2>
+                <button class="btn-info" id="btnScenarioInfo">ℹ️ Что заложено</button>
+            </div>
+            <p class="step-description">Рост капитала на горизонте <span id="resultsHorizon"></span></p>
+
+            <div class="card">
+                <div class="chart-legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ef4444;"></div>
+                        <div class="legend-label">Пессимистичный</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #3b82f6;"></div>
+                        <div class="legend-label">Базовый</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #10b981;"></div>
+                        <div class="legend-label">Оптимистичный</div>
+                    </div>
+                </div>
+
+                <div class="chart-container" id="chartContainer">
+                    <!-- Chart will be rendered here -->
+                </div>
+
+                <div class="inflation-toggle">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="inflationToggle" class="toggle-input">
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-text">Учитывать инфляцию</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="card mt-2">
+                <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;">Детализация по годам</h3>
+                <div class="table-container" id="tableContainer">
+                    <!-- Table will be rendered here -->
+                </div>
+            </div>
+
+            <div class="card mt-2">
+                <p style="font-size: 0.85rem; color: var(--tg-theme-hint-color); text-align: center;">
+                    📊 Сценарии — модель с упрощениями. Фактические доходности зависят от рынка и продукта.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="button-group">
+        <button class="btn btn-secondary hidden" id="btnPrev">← Назад</button>
+        <button class="btn btn-primary" id="btnNext">Далее →</button>
+    </div>
+
+    <!-- Scenario Info Modal -->
+    <div class="modal" id="scenarioModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Что заложено в сценарии</h3>
+                <button class="modal-close" id="modalClose">×</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Content will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Telegram WebApp initialization
+        let tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+
+            if (tg.themeParams) {
+                document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#ffffff');
+                document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#000000');
+                document.documentElement.style.setProperty('--tg-theme-hint-color', tg.themeParams.hint_color || '#999999');
+                document.documentElement.style.setProperty('--tg-theme-link-color', tg.themeParams.link_color || '#3B82F6');
+                document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#3B82F6');
+                document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color || '#ffffff');
+                document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', tg.themeParams.secondary_bg_color || '#f0f0f0');
+            }
+        }
+
+        // App State
+        const appState = {
+            currentStep: 1,
+            profile: {
+                age: null,
+                monthlyIncome: 100000,
+                monthlyExpenses: 70000
+            },
+            assets: [],
+            selectedAssetType: null,
+            liabilities: [],
+            planning: {
+                horizon: 5,
+                riskProfile: null,
+                inflation: 11
+            }
+        };
+
+        const assetInfo = {
+            stocks: { name: 'Фонды акций', icon: '📈' },
+            bonds: { name: 'Фонды облигаций', icon: '📄' },
+            cash: { name: 'Депозиты', icon: '💰' },
+            realty: { name: 'Недвижимость', icon: '🏠' }
+        };
+
+        // DOM Elements
+        const steps = document.querySelectorAll('.step');
+        const progressSteps = document.querySelectorAll('.progress-step');
+        const btnNext = document.getElementById('btnNext');
+        const btnPrev = document.getElementById('btnPrev');
+
+        // Step 1 elements
+        const ageInput = document.getElementById('age');
+        const incomeSlider = document.getElementById('incomeSlider');
+        const expensesSlider = document.getElementById('expensesSlider');
+        const incomeValue = document.getElementById('incomeValue');
+        const expensesValue = document.getElementById('expensesValue');
+        const savingsValue = document.getElementById('savingsValue');
+
+        // Step 2 elements
+        const assetCategories = document.querySelectorAll('.asset-category');
+        const assetAmountInput = document.getElementById('assetAmount');
+        const btnAddAsset = document.getElementById('btnAddAsset');
+        const assetList = document.getElementById('assetList');
+        const totalCard = document.getElementById('totalCard');
+        const totalValue = document.getElementById('totalValue');
+
+        // Step 3 elements
+        const liabilityNameInput = document.getElementById('liabilityName');
+        const liabilityBalanceInput = document.getElementById('liabilityBalance');
+        const liabilityRateInput = document.getElementById('liabilityRate');
+        const liabilityTermInput = document.getElementById('liabilityTerm');
+        const liabilityPaymentInput = document.getElementById('liabilityPayment');
+        const btnAddLiability = document.getElementById('btnAddLiability');
+        const liabilitiesList = document.getElementById('liabilitiesList');
+        const totalLiabilitiesCard = document.getElementById('totalLiabilitiesCard');
+        const totalLiabilitiesValue = document.getElementById('totalLiabilitiesValue');
+
+        // Step 4 elements
+        const horizonSlider = document.getElementById('horizonSlider');
+        const horizonValue = document.getElementById('horizonValue');
+        const riskProfiles = document.querySelectorAll('.risk-profile');
+        const inflationRateInput = document.getElementById('inflationRate');
+
+        // Step 5 elements
+        const chartContainer = document.getElementById('chartContainer');
+        const tableContainer = document.getElementById('tableContainer');
+        const inflationToggle = document.getElementById('inflationToggle');
+        const resultsHorizon = document.getElementById('resultsHorizon');
+        const btnScenarioInfo = document.getElementById('btnScenarioInfo');
+        const scenarioModal = document.getElementById('scenarioModal');
+        const modalClose = document.getElementById('modalClose');
+        const modalBody = document.getElementById('modalBody');
+
+        // Format currency
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('ru-RU', {
+                style: 'currency',
+                currency: 'RUB',
+                maximumFractionDigits: 0
+            }).format(value);
+        }
+
+        // Format number with spaces
+        function formatNumberWithSpaces(value) {
+            return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        }
+
+        // Parse number with spaces
+        function parseNumberWithSpaces(value) {
+            return value.replace(/\s/g, '');
+        }
+
+        // Format input as user types
+        function formatInputOnType(input, allowDecimals = false) {
+            let cursorPosition = input.selectionStart;
+            let oldValue = input.value;
+            let cleanValue = parseNumberWithSpaces(oldValue);
+
+            // Only format if it's a valid number
+            if (cleanValue && /^\d+\.?\d*$/.test(cleanValue)) {
+                let formatted;
+                if (allowDecimals && cleanValue.includes('.')) {
+                    const parts = cleanValue.split('.');
+                    formatted = formatNumberWithSpaces(parts[0]) + '.' + parts[1];
+                } else {
+                    formatted = formatNumberWithSpaces(cleanValue);
+                }
+
+                // Calculate new cursor position
+                const spacesBefore = (oldValue.substring(0, cursorPosition).match(/\s/g) || []).length;
+                const spacesAfter = (formatted.substring(0, cursorPosition).match(/\s/g) || []).length;
+                const newPosition = cursorPosition + (spacesAfter - spacesBefore);
+
+                input.value = formatted;
+                input.setSelectionRange(newPosition, newPosition);
+            }
+        }
+
+        // Update slider background
+        function updateSliderBackground(slider) {
+            const value = slider.value;
+            const min = slider.min || 0;
+            const max = slider.max || 100;
+            const percentage = ((value - min) / (max - min)) * 100;
+            slider.style.background = `linear-gradient(to right, var(--tg-theme-button-color) 0%, var(--tg-theme-button-color) ${percentage}%, #e2e8f0 ${percentage}%, #e2e8f0 100%)`;
+        }
+
+        // Update savings display
+        function updateSavings() {
+            const savings = appState.profile.monthlyIncome - appState.profile.monthlyExpenses;
+            savingsValue.textContent = formatCurrency(savings);
+            savingsValue.className = 'savings-value';
+            if (savings < 0) {
+                savingsValue.classList.add('negative');
+            }
+
+            // Update button state if on step 1
+            if (appState.currentStep === 1) {
+                btnNext.disabled = !validateStep1();
+            }
+        }
+
+        // Validate Step 1
+        function validateStep1() {
+            const age = parseInt(parseNumberWithSpaces(ageInput.value));
+            const isValid = age && age >= 18 && age <= 100 &&
+                          appState.profile.monthlyExpenses <= appState.profile.monthlyIncome;
+
+            if (isValid) {
+                appState.profile.age = age;
+            }
+
+            return isValid;
+        }
+
+        // Validate Step 2
+        function validateStep2() {
+            return true; // Assets are optional
+        }
+
+        // Validate Step 3
+        function validateStep3() {
+            return true; // Liabilities are optional
+        }
+
+        // Validate Step 4
+        function validateStep4() {
+            const inflation = parseFloat(parseNumberWithSpaces(inflationRateInput.value));
+            return appState.planning.riskProfile && inflation > 0;
+        }
+
+        // Update horizon display
+        function updateHorizon() {
+            const years = parseInt(horizonSlider.value);
+            appState.planning.horizon = years;
+
+            let yearText = 'лет';
+            if (years === 1) yearText = 'год';
+            else if (years >= 2 && years <= 4) yearText = 'года';
+
+            horizonValue.textContent = `${years} ${yearText}`;
+        }
+
+        // Returns for different scenarios (delta to inflation from PDF)
+        const scenarioReturns = {
+            pessimistic: { stocks: -4, bonds: -2, cash: -2 },
+            base: { stocks: 5, bonds: 1, cash: -1 },
+            optimistic: { stocks: 10, bonds: 5, cash: 0 }
+        };
+
+        // Calculate portfolio projection
+        function calculateProjection(scenario) {
+            const horizon = appState.planning.horizon;
+            const inflation = appState.planning.inflation / 100;
+
+            // Calculate initial capital from assets
+            const totalAssets = appState.assets.reduce((sum, a) => sum + a.amount, 0);
+
+            // Monthly savings from profile
+            const monthlySavings = appState.profile.monthlyIncome - appState.profile.monthlyExpenses;
+
+            // Get returns for scenario
+            const returns = scenarioReturns[scenario];
+
+            // Simple projection: stocks get stock return, bonds get bond return, cash/deposits get cash return
+            // For MVP, assume all goes into stocks based on risk profile
+            let annualReturn = 0;
+            if (appState.planning.riskProfile === 'aggressive') {
+                annualReturn = (inflation + returns.stocks / 100);
+            } else if (appState.planning.riskProfile === 'moderate') {
+                annualReturn = (inflation + (returns.stocks * 0.5 + returns.bonds * 0.5) / 100);
+            } else {
+                annualReturn = (inflation + (returns.bonds * 0.7 + returns.cash * 0.3) / 100);
+            }
+
+            const projectionData = [];
+            let capital = totalAssets;
+
+            for (let year = 0; year <= horizon; year++) {
+                projectionData.push({
+                    year: year,
+                    capital: Math.round(capital)
+                });
+
+                if (year < horizon) {
+                    // Add annual savings
+                    capital += monthlySavings * 12;
+                    // Apply return
+                    capital *= (1 + annualReturn);
+                }
+            }
+
+            return projectionData;
+        }
+
+        // Render chart with all scenarios
+        function renderChart() {
+            const useInflation = inflationToggle.checked;
+            const inflation = appState.planning.inflation / 100;
+
+            const scenarios = ['pessimistic', 'base', 'optimistic'];
+            const scenarioData = {};
+            const scenarioColors = {
+                pessimistic: '#ef4444',
+                base: '#3b82f6',
+                optimistic: '#10b981'
+            };
+
+            // Calculate all scenarios
+            scenarios.forEach(scenario => {
+                scenarioData[scenario] = calculateProjection(scenario);
+            });
+
+            // Apply inflation adjustment if needed
+            if (useInflation) {
+                scenarios.forEach(scenario => {
+                    scenarioData[scenario] = scenarioData[scenario].map(point => ({
+                        ...point,
+                        capital: Math.round(point.capital / Math.pow(1 + inflation, point.year))
+                    }));
+                });
+            }
+
+            const width = chartContainer.clientWidth;
+            const height = 250;
+            const padding = 40;
+
+            // Find global min/max
+            let allCapitals = [];
+            scenarios.forEach(scenario => {
+                allCapitals = allCapitals.concat(scenarioData[scenario].map(d => d.capital));
+            });
+            const maxCapital = Math.max(...allCapitals);
+            const minCapital = Math.min(...allCapitals);
+
+            const xScale = (year) => padding + (year / appState.planning.horizon) * (width - 2 * padding);
+            const yScale = (capital) => height - padding - ((capital - minCapital) / (maxCapital - minCapital)) * (height - 2 * padding);
+
+            // Generate paths for each scenario
+            const paths = scenarios.map(scenario => {
+                const data = scenarioData[scenario];
+                let pathD = '';
+                data.forEach((point, i) => {
+                    const x = xScale(point.year);
+                    const y = yScale(point.capital);
+                    if (i === 0) {
+                        pathD += `M ${x} ${y}`;
+                    } else {
+                        pathD += ` L ${x} ${y}`;
+                    }
+                });
+                return { scenario, pathD, data, color: scenarioColors[scenario] };
+            });
+
+            // Format values for Y axis (shorter for mobile)
+            const formatYAxisValue = (value) => {
+                if (value >= 1000000) {
+                    return (value / 1000000).toFixed(1) + 'M';
+                } else if (value >= 1000) {
+                    return (value / 1000).toFixed(0) + 'K';
+                }
+                return value.toFixed(0);
+            };
+
+            let svg = `
+                <svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Grid lines -->
+                    ${[0, 0.5, 1].map(ratio => {
+                        const y = height - padding - ratio * (height - 2 * padding);
+                        const value = minCapital + ratio * (maxCapital - minCapital);
+                        return `
+                            <line x1="${padding}" y1="${y}" x2="${width - padding}" y2="${y}" stroke="#e2e8f0" stroke-width="1"/>
+                            <text x="${padding - 5}" y="${y + 4}" text-anchor="end" font-size="10" fill="#999">${formatYAxisValue(value)}</text>
+                        `;
+                    }).join('')}
+
+                    <!-- X axis labels -->
+                    ${scenarioData.base.map(point => {
+                        const x = xScale(point.year);
+                        return `<text x="${x}" y="${height - padding + 20}" text-anchor="middle" font-size="10" fill="#999">${point.year}г</text>`;
+                    }).join('')}
+
+                    <!-- Lines for all scenarios -->
+                    ${paths.map(({ scenario, pathD, color }) => `
+                        <path d="${pathD}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+                    `).join('')}
+
+                    <!-- Points for all scenarios -->
+                    ${paths.map(({ scenario, data, color }) => data.map(point => {
+                        const x = xScale(point.year);
+                        const y = yScale(point.capital);
+                        return `<circle cx="${x}" cy="${y}" r="3" fill="${color}" opacity="0.8"/>`;
+                    }).join('')).join('')}
+                </svg>
+            `;
+
+            chartContainer.innerHTML = svg;
+
+            // Render table
+            renderTable(scenarioData, useInflation);
+        }
+
+        // Render projection table
+        function renderTable(scenarioData, useInflation) {
+            const html = `
+                <table class="projection-table">
+                    <thead>
+                        <tr>
+                            <th>Год</th>
+                            <th class="pessimistic-col">Пессим.</th>
+                            <th class="base-col">Базовый</th>
+                            <th class="optimistic-col">Оптим.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${scenarioData.base.map((point, index) => `
+                            <tr>
+                                <td class="year-col">${point.year}</td>
+                                <td class="pessimistic-col">${formatCurrency(scenarioData.pessimistic[index].capital)}</td>
+                                <td class="base-col">${formatCurrency(scenarioData.base[index].capital)}</td>
+                                <td class="optimistic-col">${formatCurrency(scenarioData.optimistic[index].capital)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            tableContainer.innerHTML = html;
+        }
+
+        // Navigate to step
+        function goToStep(step) {
+            appState.currentStep = step;
+
+            // Update steps visibility
+            steps.forEach((el, index) => {
+                el.classList.toggle('active', index + 1 === step);
+            });
+
+            // Update progress bar
+            progressSteps.forEach((el, index) => {
+                el.classList.remove('active', 'completed');
+                if (index + 1 < step) {
+                    el.classList.add('completed');
+                } else if (index + 1 === step) {
+                    el.classList.add('active');
+                }
+            });
+
+            // Update buttons
+            btnPrev.classList.toggle('hidden', step === 1);
+
+            if (step === 1) {
+                btnNext.disabled = !validateStep1();
+            } else if (step === 2) {
+                btnNext.disabled = !validateStep2();
+            } else if (step === 3) {
+                btnNext.disabled = !validateStep3();
+            } else if (step === 4) {
+                btnNext.disabled = !validateStep4();
+            } else {
+                btnNext.disabled = false;
+            }
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+
+            // If step 5, render chart and update horizon text
+            if (step === 5) {
+                let yearText = 'лет';
+                const years = appState.planning.horizon;
+                if (years === 1) yearText = 'год';
+                else if (years >= 2 && years <= 4) yearText = 'года';
+                resultsHorizon.textContent = `${years} ${yearText}`;
+
+                renderChart();
+            }
+
+            saveData();
+        }
+
+        // Add asset
+        function addAsset() {
+            if (!appState.selectedAssetType) return;
+
+            const amount = parseFloat(parseNumberWithSpaces(assetAmountInput.value));
+            if (!amount || amount <= 0) return;
+
+            const asset = {
+                id: Date.now(),
+                type: appState.selectedAssetType,
+                amount: amount,
+                ...assetInfo[appState.selectedAssetType]
+            };
+
+            appState.assets.push(asset);
+
+            // Reset form
+            assetAmountInput.value = '';
+            appState.selectedAssetType = null;
+            assetCategories.forEach(cat => cat.classList.remove('selected'));
+            btnAddAsset.disabled = true;
+
+            renderAssets();
+            saveData();
+        }
+
+        // Delete asset
+        function deleteAsset(id) {
+            appState.assets = appState.assets.filter(a => a.id !== id);
+            renderAssets();
+            saveData();
+        }
+
+        // Render assets
+        function renderAssets() {
+            if (appState.assets.length === 0) {
+                assetList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">💼</div>
+                        <div>Добавьте активы для расчета прогноза</div>
+                    </div>
+                `;
+                totalCard.classList.add('hidden');
+                return;
+            }
+
+            const total = appState.assets.reduce((sum, a) => sum + a.amount, 0);
+
+            assetList.innerHTML = appState.assets.map(asset => `
+                <div class="asset-item">
+                    <div class="asset-item-info">
+                        <div class="asset-item-icon">${asset.icon}</div>
+                        <div class="asset-item-details">
+                            <div class="asset-item-name">${asset.name}</div>
+                            <div class="asset-item-category">${formatCurrency(asset.amount)}</div>
+                        </div>
+                    </div>
+                    <button class="btn-delete" onclick="deleteAsset(${asset.id})">×</button>
+                </div>
+            `).join('');
+
+            totalValue.textContent = formatCurrency(total);
+            totalCard.classList.remove('hidden');
+        }
+
+        // Add liability
+        function addLiability() {
+            const name = liabilityNameInput.value.trim();
+            const balance = parseFloat(parseNumberWithSpaces(liabilityBalanceInput.value));
+            const payment = parseFloat(parseNumberWithSpaces(liabilityPaymentInput.value));
+            const rate = parseFloat(parseNumberWithSpaces(liabilityRateInput.value));
+            const term = parseFloat(parseNumberWithSpaces(liabilityTermInput.value));
+
+            if (!name || !balance || balance <= 0 || !payment || payment <= 0 || !rate || rate < 0 || !term || term <= 0) {
+                return;
+            }
+
+            const liability = {
+                id: Date.now(),
+                name,
+                balance,
+                payment,
+                rate,
+                term
+            };
+
+            appState.liabilities.push(liability);
+
+            // Reset form
+            liabilityNameInput.value = '';
+            liabilityBalanceInput.value = '';
+            liabilityPaymentInput.value = '';
+            liabilityRateInput.value = '';
+            liabilityTermInput.value = '';
+            btnAddLiability.disabled = true;
+
+            renderLiabilities();
+            saveData();
+        }
+
+        // Delete liability
+        function deleteLiability(id) {
+            appState.liabilities = appState.liabilities.filter(l => l.id !== id);
+            renderLiabilities();
+            saveData();
+        }
+
+        // Render liabilities
+        function renderLiabilities() {
+            if (appState.liabilities.length === 0) {
+                liabilitiesList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📋</div>
+                        <div>Нет обязательств - это здорово!</div>
+                    </div>
+                `;
+                totalLiabilitiesCard.classList.add('hidden');
+                return;
+            }
+
+            const total = appState.liabilities.reduce((sum, l) => sum + l.balance, 0);
+
+            liabilitiesList.innerHTML = appState.liabilities.map(liability => `
+                <div class="asset-item">
+                    <div class="asset-item-info">
+                        <div class="asset-item-icon">💳</div>
+                        <div class="asset-item-details">
+                            <div class="asset-item-name">${liability.name}</div>
+                            <div class="asset-item-category">${formatCurrency(liability.balance)} • ${formatCurrency(liability.payment)}/мес • ${liability.rate}%</div>
+                        </div>
+                    </div>
+                    <button class="btn-delete" onclick="deleteLiability(${liability.id})">×</button>
+                </div>
+            `).join('');
+
+            totalLiabilitiesValue.textContent = formatCurrency(total);
+            totalLiabilitiesCard.classList.remove('hidden');
+        }
+
+        // Track which field was edited last
+        let lastEditedField = null;
+
+        // Calculate liability payment from rate
+        function calculateLiabilityPayment() {
+            const balance = parseFloat(parseNumberWithSpaces(liabilityBalanceInput.value));
+            const rate = parseFloat(parseNumberWithSpaces(liabilityRateInput.value));
+            const term = parseFloat(parseNumberWithSpaces(liabilityTermInput.value));
+
+            if (balance > 0 && rate >= 0 && term > 0) {
+                const monthlyRate = rate / 100 / 12;
+                let payment;
+                if (monthlyRate === 0) {
+                    payment = balance / term;
+                } else {
+                    payment = balance * (monthlyRate * Math.pow(1 + monthlyRate, term)) / (Math.pow(1 + monthlyRate, term) - 1);
+                }
+                liabilityPaymentInput.value = formatNumberWithSpaces(Math.round(payment));
+            } else if (!liabilityPaymentInput.value) {
+                liabilityPaymentInput.value = '';
+            }
+            validateLiabilityForm();
+        }
+
+        // Calculate liability rate from payment (using Newton's method)
+        function calculateLiabilityRate() {
+            const balance = parseFloat(parseNumberWithSpaces(liabilityBalanceInput.value));
+            const payment = parseFloat(parseNumberWithSpaces(liabilityPaymentInput.value));
+            const term = parseFloat(parseNumberWithSpaces(liabilityTermInput.value));
+
+            if (balance > 0 && payment > 0 && term > 0) {
+                // Check if payment is sufficient
+                if (payment < balance / term) {
+                    liabilityRateInput.value = '';
+                    validateLiabilityForm();
+                    return;
+                }
+
+                // Newton's method to find interest rate
+                let rate = 0.1; // Initial guess 10%
+                const tolerance = 0.0001;
+                const maxIterations = 100;
+
+                for (let i = 0; i < maxIterations; i++) {
+                    const monthlyRate = rate / 12;
+                    const pow = Math.pow(1 + monthlyRate, term);
+                    const calculatedPayment = balance * (monthlyRate * pow) / (pow - 1);
+
+                    if (Math.abs(calculatedPayment - payment) < tolerance) {
+                        liabilityRateInput.value = (rate * 100).toFixed(2);
+                        break;
+                    }
+
+                    // Derivative for Newton's method
+                    const derivative = balance * term * Math.pow(1 + monthlyRate, term - 1) / (12 * Math.pow(Math.pow(1 + monthlyRate, term) - 1, 2));
+                    rate = rate - (calculatedPayment - payment) / derivative;
+
+                    if (rate < 0) rate = 0;
+                    if (rate > 1) rate = 1;
+                }
+            } else if (!liabilityRateInput.value) {
+                liabilityRateInput.value = '';
+            }
+            validateLiabilityForm();
+        }
+
+        // Validate liability form
+        function validateLiabilityForm() {
+            const name = liabilityNameInput.value.trim();
+            const balance = parseFloat(parseNumberWithSpaces(liabilityBalanceInput.value));
+            const payment = parseFloat(parseNumberWithSpaces(liabilityPaymentInput.value));
+            const rate = parseFloat(parseNumberWithSpaces(liabilityRateInput.value));
+            const term = parseFloat(parseNumberWithSpaces(liabilityTermInput.value));
+
+            const isValid = name && balance > 0 && payment > 0 && rate >= 0 && term > 0;
+            btnAddLiability.disabled = !isValid;
+        }
+
+        // Save to localStorage
+        function saveData() {
+            localStorage.setItem('fintest_data', JSON.stringify(appState));
+        }
+
+        // Load from localStorage
+        function loadData() {
+            const saved = localStorage.getItem('fintest_data');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    Object.assign(appState, data);
+
+                    // Restore Step 1
+                    if (appState.profile.age) ageInput.value = appState.profile.age;
+                    incomeSlider.value = appState.profile.monthlyIncome;
+                    expensesSlider.value = appState.profile.monthlyExpenses;
+                    incomeValue.textContent = formatCurrency(appState.profile.monthlyIncome);
+                    expensesValue.textContent = formatCurrency(appState.profile.monthlyExpenses);
+                    updateSliderBackground(incomeSlider);
+                    updateSliderBackground(expensesSlider);
+                    updateSavings();
+
+                    // Restore Step 2
+                    renderAssets();
+
+                    // Restore Step 3
+                    renderLiabilities();
+
+                    // Restore Step 4
+                    if (appState.planning) {
+                        horizonSlider.value = appState.planning.horizon || 5;
+                        updateHorizon();
+                        updateSliderBackground(horizonSlider);
+
+                        if (appState.planning.riskProfile) {
+                            riskProfiles.forEach(p => {
+                                if (p.dataset.risk === appState.planning.riskProfile) {
+                                    p.classList.add('selected');
+                                }
+                            });
+                        }
+
+                        if (appState.planning.inflation) {
+                            inflationRateInput.value = appState.planning.inflation;
+                        }
+                    }
+
+                    // Go to saved step
+                    goToStep(appState.currentStep);
+                } catch (e) {
+                    console.error('Error loading data:', e);
+                }
+            }
+        }
+
+        // Event Listeners - Step 1
+        ageInput.addEventListener('input', () => {
+            formatInputOnType(ageInput, false);
+            const age = parseInt(parseNumberWithSpaces(ageInput.value));
+            if (age) appState.profile.age = age;
+            validateStep1();
+            btnNext.disabled = !validateStep1();
+            saveData();
+        });
+
+        ageInput.addEventListener('change', () => {
+            validateStep1();
+            btnNext.disabled = !validateStep1();
+            saveData();
+        });
+
+
+        incomeSlider.addEventListener('input', () => {
+            appState.profile.monthlyIncome = parseInt(incomeSlider.value);
+            incomeValue.textContent = formatCurrency(appState.profile.monthlyIncome);
+            updateSliderBackground(incomeSlider);
+            updateSavings();
+            saveData();
+        });
+
+        expensesSlider.addEventListener('input', () => {
+            appState.profile.monthlyExpenses = parseInt(expensesSlider.value);
+            expensesValue.textContent = formatCurrency(appState.profile.monthlyExpenses);
+            updateSliderBackground(expensesSlider);
+            updateSavings();
+            saveData();
+        });
+
+        // Event Listeners - Step 2
+        assetCategories.forEach(category => {
+            category.addEventListener('click', () => {
+                assetCategories.forEach(c => c.classList.remove('selected'));
+                category.classList.add('selected');
+                appState.selectedAssetType = category.dataset.type;
+
+                const amount = parseFloat(assetAmountInput.value);
+                btnAddAsset.disabled = !amount || amount <= 0;
+            });
+        });
+
+        assetAmountInput.addEventListener('input', () => {
+            formatInputOnType(assetAmountInput, false);
+            const amount = parseFloat(parseNumberWithSpaces(assetAmountInput.value));
+            btnAddAsset.disabled = !appState.selectedAssetType || !amount || amount <= 0;
+        });
+
+
+        btnAddAsset.addEventListener('click', addAsset);
+
+        // Event Listeners - Step 3
+        liabilityNameInput.addEventListener('input', validateLiabilityForm);
+
+        liabilityBalanceInput.addEventListener('input', () => {
+            formatInputOnType(liabilityBalanceInput, false);
+            if (lastEditedField === 'payment') {
+                calculateLiabilityRate();
+            } else {
+                calculateLiabilityPayment();
+            }
+        });
+        liabilityRateInput.addEventListener('input', () => {
+            formatInputOnType(liabilityRateInput, true);
+            lastEditedField = 'rate';
+            calculateLiabilityPayment();
+        });
+
+        liabilityTermInput.addEventListener('input', () => {
+            formatInputOnType(liabilityTermInput, false);
+            if (lastEditedField === 'payment') {
+                calculateLiabilityRate();
+            } else {
+                calculateLiabilityPayment();
+            }
+        });
+
+        liabilityPaymentInput.addEventListener('input', () => {
+            formatInputOnType(liabilityPaymentInput, false);
+            lastEditedField = 'payment';
+            calculateLiabilityRate();
+        });
+
+        btnAddLiability.addEventListener('click', addLiability);
+
+        // Event Listeners - Step 4
+        horizonSlider.addEventListener('input', () => {
+            updateHorizon();
+            updateSliderBackground(horizonSlider);
+            saveData();
+        });
+
+        riskProfiles.forEach(profile => {
+            profile.addEventListener('click', () => {
+                riskProfiles.forEach(p => p.classList.remove('selected'));
+                profile.classList.add('selected');
+                appState.planning.riskProfile = profile.dataset.risk;
+
+                if (appState.currentStep === 4) {
+                    btnNext.disabled = !validateStep4();
+                }
+                saveData();
+            });
+        });
+
+        inflationRateInput.addEventListener('input', () => {
+            formatInputOnType(inflationRateInput, true);
+            const inflation = parseFloat(parseNumberWithSpaces(inflationRateInput.value));
+            if (inflation) appState.planning.inflation = inflation;
+
+            if (appState.currentStep === 4) {
+                btnNext.disabled = !validateStep4();
+            }
+            saveData();
+        });
+
+        // Show scenario info modal
+        function showScenarioInfo() {
+            const inflation = appState.planning.inflation;
+            const scenarios = [
+                {
+                    name: 'Пессимистичный',
+                    color: '#ef4444',
+                    data: [
+                        { asset: 'Фонды акций', delta: -4, total: inflation - 4 },
+                        { asset: 'Фонды облигаций', delta: -2, total: inflation - 2 },
+                        { asset: 'Депозиты', delta: -2, total: inflation - 2 },
+                        { asset: 'Недвижимость', delta: 0, total: inflation }
+                    ]
+                },
+                {
+                    name: 'Базовый',
+                    color: '#3b82f6',
+                    data: [
+                        { asset: 'Фонды акций', delta: 5, total: inflation + 5 },
+                        { asset: 'Фонды облигаций', delta: 1, total: inflation + 1 },
+                        { asset: 'Депозиты', delta: -1, total: inflation - 1 },
+                        { asset: 'Недвижимость', delta: 1, total: inflation + 1 }
+                    ]
+                },
+                {
+                    name: 'Оптимистичный',
+                    color: '#10b981',
+                    data: [
+                        { asset: 'Фонды акций', delta: 10, total: inflation + 10 },
+                        { asset: 'Фонды облигаций', delta: 5, total: inflation + 5 },
+                        { asset: 'Депозиты', delta: 0, total: inflation },
+                        { asset: 'Недвижимость', delta: 2, total: inflation + 2 }
+                    ]
+                }
+            ];
+
+            const html = scenarios.map(scenario => `
+                <div class="scenario-info-item">
+                    <div class="scenario-info-title">
+                        <div class="legend-color" style="background: ${scenario.color};"></div>
+                        <span>${scenario.name} сценарий</span>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--tg-theme-hint-color); margin-bottom: 0.75rem;">
+                        Доходность = инфляция (${inflation}%) + параметр:
+                    </p>
+                    <table class="scenario-info-table">
+                        ${scenario.data.map(item => `
+                            <tr>
+                                <td>${item.asset}</td>
+                                <td>${inflation}% ${item.delta >= 0 ? '+' : ''}${item.delta}% = ${item.total}%</td>
+                            </tr>
+                        `).join('')}
+                    </table>
+                </div>
+            `).join('');
+
+            modalBody.innerHTML = html;
+            scenarioModal.classList.add('active');
+        }
+
+        // Event Listeners - Step 5
+        inflationToggle.addEventListener('change', () => {
+            if (appState.currentStep === 5) {
+                renderChart();
+            }
+        });
+
+        btnScenarioInfo.addEventListener('click', showScenarioInfo);
+
+        modalClose.addEventListener('click', () => {
+            scenarioModal.classList.remove('active');
+        });
+
+        scenarioModal.addEventListener('click', (e) => {
+            if (e.target === scenarioModal) {
+                scenarioModal.classList.remove('active');
+            }
+        });
+
+        // Navigation
+        btnNext.addEventListener('click', () => {
+            if (appState.currentStep === 1) {
+                if (validateStep1()) {
+                    goToStep(2);
+                }
+            } else if (appState.currentStep === 2) {
+                if (validateStep2()) {
+                    goToStep(3);
+                }
+            } else if (appState.currentStep === 3) {
+                if (validateStep3()) {
+                    goToStep(4);
+                }
+            } else if (appState.currentStep === 4) {
+                if (validateStep4()) {
+                    goToStep(5);
+                }
+            } else if (appState.currentStep === 5) {
+                // Final step
+                if (tg) {
+                    tg.showAlert('Прогноз готов! Данные сохранены.');
+                } else {
+                    alert('Прогноз готов!');
+                }
+            }
+        });
+
+        btnPrev.addEventListener('click', () => {
+            if (appState.currentStep > 1) {
+                goToStep(appState.currentStep - 1);
+            }
+        });
+
+        // Make functions available globally
+        window.deleteAsset = deleteAsset;
+        window.deleteLiability = deleteLiability;
+
+        // Initialize
+        loadData();
+        updateSliderBackground(incomeSlider);
+        updateSliderBackground(expensesSlider);
+        updateSliderBackground(horizonSlider);
+        updateSavings();
+        updateHorizon();
+
+        // Initialize button states
+        btnAddAsset.disabled = true;
+        btnAddLiability.disabled = true;
+
+        // Set default inflation if empty
+        if (!inflationRateInput.value) {
+            inflationRateInput.value = '11';
+        }
+
+        console.log('FinTest initialized');
+    </script>
+</body>
+</html>

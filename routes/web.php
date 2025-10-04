@@ -11,3 +11,8 @@ Route::get('/', function () {
 Route::get('/FinCalc', function () {
     return response()->file(public_path('FinCalc/index.html'));
 });
+
+// FinTest - Mobile financial calculator (Telegram Mini App)
+Route::get('/fintest', function () {
+    return response()->file(public_path('FinTest/index.html'));
+});
