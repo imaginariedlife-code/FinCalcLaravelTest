@@ -46,7 +46,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
             padding: 0.5rem 0;
         }
 
@@ -1109,6 +1109,142 @@
         .allocation-hint.success {
             color: #10b981;
         }
+
+        /* Step 7: Comparison Results Styles */
+        .benefit-summary-card {
+            background: linear-gradient(135deg, #D1FAE5 0%, white 100%);
+            border: 2px solid #10B981;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Reduce spacing in Step 7 */
+        #step-7 {
+            margin-top: -0.5rem;  /* Pull closer to progress bar */
+        }
+
+        #step-7 .step-title {
+            margin-bottom: 0.25rem;
+        }
+
+        #step-7 .step-description {
+            margin-bottom: 1rem;
+        }
+
+        .benefit-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #059669;
+            margin-bottom: 0.75rem;
+        }
+
+        .benefit-amount {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #047857;
+            margin: 0.5rem 0;
+            line-height: 1.6;
+        }
+
+        .benefit-amount span {
+            font-size: 1.25rem;
+            color: #065F46;
+        }
+
+        .benefit-hint {
+            font-size: 0.85rem;
+            color: #059669;
+            margin-top: 0.5rem;
+        }
+
+        .comparison-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .comparison-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--tg-theme-text-color);
+        }
+
+        .comparison-description {
+            font-size: 0.8rem;
+            color: var(--tg-theme-hint-color);
+            margin-bottom: 0.75rem;
+        }
+
+        .breakdown-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            justify-content: center;
+        }
+
+        /* Scenario Switcher */
+        .scenario-switcher {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .scenario-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            color: var(--tg-theme-text-color);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .scenario-btn:active {
+            transform: scale(0.95);
+        }
+
+        .scenario-btn.active {
+            background: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+            border-color: var(--tg-theme-button-color);
+        }
+
+        /* Combined Legend with line styles */
+        .combined-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            justify-content: center;
+        }
+
+        .legend-line {
+            width: 30px;
+            height: 3px;
+            background: currentColor;
+        }
+
+        .legend-line.solid {
+            background: var(--tg-theme-button-color);
+        }
+
+        .legend-line.dashed {
+            background: repeating-linear-gradient(
+                to right,
+                var(--tg-theme-hint-color) 0,
+                var(--tg-theme-hint-color) 5px,
+                transparent 5px,
+                transparent 10px
+            );
+            height: 2px;
+            margin-top: 0.5px;
+        }
     </style>
 </head>
 <body>
@@ -1132,6 +1268,9 @@
             </div>
             <div class="progress-step" id="progress-6">
                 <span class="progress-step-label">6</span>
+            </div>
+            <div class="progress-step" id="progress-7">
+                <span class="progress-step-label">7</span>
             </div>
         </div>
 
@@ -1527,6 +1666,81 @@
                 </p>
             </div>
         </div>
+
+        <!-- Step 7: Comparison Results -->
+        <div class="step" id="step-7">
+        <h2 class="step-title">Ваша выгода</h2>
+        <p class="step-description">Результаты регулярных инвестиций</p>
+
+        <!-- Benefit Summary Card -->
+        <div class="benefit-summary-card">
+            <div class="benefit-title">💰 Регулярно инвестируя вы получите</div>
+            <div class="benefit-amount">
+                От <span id="benefitMin">+0 ₽</span> до <span id="benefitMax">+0 ₽</span>
+            </div>
+            <div class="benefit-hint">За <span id="benefitHorizon">5</span> лет</div>
+        </div>
+
+        <!-- Combined Chart: Scenario Comparison -->
+        <div class="comparison-section">
+            <h3 class="comparison-title">График 1: Сравнение сценариев</h3>
+            <p class="comparison-description">Две линии на одном графике - переключайте сценарии</p>
+
+            <!-- Scenario Switcher -->
+            <div class="scenario-switcher">
+                <button class="scenario-btn active" data-scenario="base">
+                    Базовый
+                </button>
+                <button class="scenario-btn" data-scenario="pessimistic">
+                    Пессимистичный
+                </button>
+                <button class="scenario-btn" data-scenario="optimistic">
+                    Оптимистичный
+                </button>
+            </div>
+
+            <div class="card">
+                <div class="combined-legend">
+                    <div class="legend-item">
+                        <div class="legend-line solid"></div>
+                        <div class="legend-label">С регулярными инвестициями</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-line dashed"></div>
+                        <div class="legend-label">Без регулярных инвестиций</div>
+                    </div>
+                </div>
+                <div class="chart-container" id="chartCombined">
+                    <!-- Combined chart will be rendered here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Breakdown Chart: Capital Composition -->
+        <div class="comparison-section">
+            <h3 class="comparison-title">График 2: Из чего состоит ваш капитал</h3>
+            <p class="comparison-description">Декомпозиция по компонентам (базовый сценарий)</p>
+            <div class="card">
+                <div class="breakdown-legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #10b981;"></div>
+                        <div class="legend-label">Базовые активы</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #3b82f6;"></div>
+                        <div class="legend-label">Пополнения</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #f59e0b;"></div>
+                        <div class="legend-label">Доход от инвестиций</div>
+                    </div>
+                </div>
+                <div class="chart-container" id="chartBreakdown">
+                    <!-- Stacked bar chart will be rendered here -->
+                </div>
+            </div>
+        </div>
+        </div>
     </div>
 
     <!-- Navigation Buttons -->
@@ -1722,6 +1936,16 @@
         const cashWarning = document.getElementById('cashWarning');
         const totalAllocation = document.getElementById('totalAllocation');
         const allocationHint = document.getElementById('allocationHint');
+
+        // Step 7 elements
+        const benefitMin = document.getElementById('benefitMin');
+        const benefitMax = document.getElementById('benefitMax');
+        const benefitHorizon = document.getElementById('benefitHorizon');
+        const chartWithout = document.getElementById('chartWithout');
+        const chartWith = document.getElementById('chartWith');
+        const chartBreakdown = document.getElementById('chartBreakdown');
+        const chartCombined = document.getElementById('chartCombined');
+        const scenarioBtns = document.querySelectorAll('.scenario-btn');
 
         // Format currency
         function formatCurrency(value) {
@@ -1928,7 +2152,7 @@
             }
 
             const width = chartContainer.clientWidth;
-            const height = 250;
+            const height = 350;
             const padding = 40;
 
             // Find global min/max
@@ -2033,6 +2257,417 @@
             tableContainer.innerHTML = html;
         }
 
+        // Step 7: Calculate projection WITHOUT regular contributions (only existing assets grow)
+        function calculateProjectionWithoutContributions(scenario) {
+            const horizon = appState.planning.horizon;
+            const inflation = appState.planning.inflation / 100;
+            const totalAssets = appState.assets.reduce((sum, a) => sum + a.amount, 0);
+            const returns = scenarioReturns[scenario];
+
+            // Calculate return based on risk profile
+            let annualReturn = 0;
+            if (appState.planning.riskProfile === 'aggressive') {
+                annualReturn = (inflation + returns.stocks / 100);
+            } else if (appState.planning.riskProfile === 'moderate') {
+                annualReturn = (inflation + (returns.stocks * 0.5 + returns.bonds * 0.5) / 100);
+            } else {
+                annualReturn = (inflation + (returns.bonds * 0.7 + returns.cash * 0.3) / 100);
+            }
+
+            const projectionData = [];
+            let capital = totalAssets;
+
+            for (let year = 0; year <= horizon; year++) {
+                projectionData.push({
+                    year: year,
+                    capital: Math.round(capital)
+                });
+
+                if (year < horizon) {
+                    // NO contributions, only apply return to existing capital
+                    capital *= (1 + annualReturn);
+                }
+            }
+
+            return projectionData;
+        }
+
+        // Step 7: Calculate projection WITH regular investments
+        function calculateProjectionWithRegularInvestments(scenario) {
+            const horizon = appState.planning.horizon;
+            const inflation = appState.planning.inflation / 100;
+            const totalAssets = appState.assets.reduce((sum, a) => sum + a.amount, 0);
+            const monthlySavings = appState.profile.monthlyIncome - appState.profile.monthlyExpenses;
+            const returns = ASSET_RETURN_DELTAS;
+
+            // Calculate weighted return based on user's allocation
+            const allocation = appState.regularInvestments.allocation;
+            const weightedDelta = (
+                (allocation.stocks / 100) * returns.stocks[scenario] +
+                (allocation.bonds / 100) * returns.bonds[scenario] +
+                (allocation.cash / 100) * returns.cash[scenario]
+            );
+            const annualReturn = inflation + (weightedDelta / 100);
+
+            // Monthly investment amount
+            const investmentPercent = appState.regularInvestments.investmentPercent / 100;
+            const monthlyInvestment = monthlySavings * investmentPercent;
+
+            const projectionData = [];
+            let capital = totalAssets;
+
+            for (let year = 0; year <= horizon; year++) {
+                projectionData.push({
+                    year: year,
+                    capital: Math.round(capital)
+                });
+
+                if (year < horizon) {
+                    // Add annual contributions
+                    capital += monthlyInvestment * 12;
+                    // Apply weighted return
+                    capital *= (1 + annualReturn);
+                }
+            }
+
+            return projectionData;
+        }
+
+        // Step 7: Calculate projection breakdown (base, contributions, gains)
+        function calculateProjectionBreakdown() {
+            const scenario = 'base';
+            const horizon = appState.planning.horizon;
+            const inflation = appState.planning.inflation / 100;
+            const totalAssets = appState.assets.reduce((sum, a) => sum + a.amount, 0);
+            const monthlySavings = appState.profile.monthlyIncome - appState.profile.monthlyExpenses;
+            const returns = ASSET_RETURN_DELTAS;
+
+            // Calculate weighted return
+            const allocation = appState.regularInvestments.allocation;
+            const weightedDelta = (
+                (allocation.stocks / 100) * returns.stocks[scenario] +
+                (allocation.bonds / 100) * returns.bonds[scenario] +
+                (allocation.cash / 100) * returns.cash[scenario]
+            );
+            const annualReturn = inflation + (weightedDelta / 100);
+
+            const investmentPercent = appState.regularInvestments.investmentPercent / 100;
+            const monthlyInvestment = monthlySavings * investmentPercent;
+
+            const breakdownData = [];
+            let capital = totalAssets;
+            let totalContributions = 0;
+            const baseAssets = totalAssets;
+
+            for (let year = 0; year <= horizon; year++) {
+                const investmentGains = capital - baseAssets - totalContributions;
+
+                breakdownData.push({
+                    year: year,
+                    baseAssets: baseAssets,
+                    totalContributions: totalContributions,
+                    investmentGains: Math.max(0, investmentGains),
+                    total: capital
+                });
+
+                if (year < horizon) {
+                    // Add annual contributions
+                    const annualContribution = monthlyInvestment * 12;
+                    capital += annualContribution;
+                    totalContributions += annualContribution;
+
+                    // Apply return
+                    capital *= (1 + annualReturn);
+                }
+            }
+
+            return breakdownData;
+        }
+
+        // Step 7: Render comparison charts (without and with regular investments)
+        function renderComparisonCharts() {
+            const scenarios = ['pessimistic', 'base', 'optimistic'];
+            const scenarioColors = {
+                pessimistic: '#ef4444',
+                base: '#3b82f6',
+                optimistic: '#10b981'
+            };
+
+            // Calculate both scenarios
+            const dataWithout = {};
+            const dataWith = {};
+
+            scenarios.forEach(scenario => {
+                dataWithout[scenario] = calculateProjectionWithoutContributions(scenario);
+                dataWith[scenario] = calculateProjectionWithRegularInvestments(scenario);
+            });
+
+            // Update benefit summary
+            const horizon = appState.planning.horizon;
+            const lastYear = horizon;
+            const benefitPessimistic = dataWith.pessimistic[lastYear].capital - dataWithout.pessimistic[lastYear].capital;
+            const benefitOptimistic = dataWith.optimistic[lastYear].capital - dataWithout.optimistic[lastYear].capital;
+
+            benefitMin.textContent = '+' + formatCurrency(benefitPessimistic);
+            benefitMax.textContent = '+' + formatCurrency(benefitOptimistic);
+
+            let yearText = 'лет';
+            if (horizon === 1) yearText = 'год';
+            else if (horizon >= 2 && horizon <= 4) yearText = 'года';
+            benefitHorizon.textContent = `${horizon} ${yearText}`;
+        }
+
+        // Step 7: Helper function to render a single comparison chart
+        function renderSingleChart(container, scenarioData, scenarioColors) {
+            const width = container.clientWidth || 300;
+            const height = 350;
+            const padding = 40;
+            const scenarios = ['pessimistic', 'base', 'optimistic'];
+
+            // Find global min/max
+            let allCapitals = [];
+            scenarios.forEach(scenario => {
+                allCapitals = allCapitals.concat(scenarioData[scenario].map(d => d.capital));
+            });
+            const maxCapital = Math.max(...allCapitals);
+            const minCapital = Math.min(...allCapitals);
+
+            const horizon = appState.planning.horizon;
+            const xScale = (year) => padding + (year / horizon) * (width - 2 * padding);
+            const yScale = (capital) => height - padding - ((capital - minCapital) / (maxCapital - minCapital)) * (height - 2 * padding);
+
+            // Generate paths
+            const paths = scenarios.map(scenario => {
+                const data = scenarioData[scenario];
+                let pathD = '';
+                data.forEach((point, i) => {
+                    const x = xScale(point.year);
+                    const y = yScale(point.capital);
+                    if (i === 0) {
+                        pathD += `M ${x} ${y}`;
+                    } else {
+                        pathD += ` L ${x} ${y}`;
+                    }
+                });
+                return { scenario, pathD, data, color: scenarioColors[scenario] };
+            });
+
+            // Format Y axis values
+            const formatYAxisValue = (value) => {
+                if (value >= 1000000) {
+                    return (value / 1000000).toFixed(1) + 'M';
+                } else if (value >= 1000) {
+                    return (value / 1000).toFixed(0) + 'K';
+                }
+                return value.toFixed(0);
+            };
+
+            let svg = `
+                <svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Grid lines -->
+                    ${[0, 0.5, 1].map(ratio => {
+                        const y = height - padding - ratio * (height - 2 * padding);
+                        const value = minCapital + ratio * (maxCapital - minCapital);
+                        return `
+                            <line x1="${padding}" y1="${y}" x2="${width - padding}" y2="${y}" stroke="#e2e8f0" stroke-width="1"/>
+                            <text x="${padding - 5}" y="${y + 4}" text-anchor="end" font-size="10" fill="#999">${formatYAxisValue(value)}</text>
+                        `;
+                    }).join('')}
+
+                    <!-- X axis labels -->
+                    ${scenarioData.base.map(point => {
+                        const x = xScale(point.year);
+                        return `<text x="${x}" y="${height - padding + 20}" text-anchor="middle" font-size="10" fill="#999">${point.year}г</text>`;
+                    }).join('')}
+
+                    <!-- Lines -->
+                    ${paths.map(({ pathD, color }) => `
+                        <path d="${pathD}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+                    `).join('')}
+
+                    <!-- Points -->
+                    ${paths.map(({ data, color }) => data.map(point => {
+                        const x = xScale(point.year);
+                        const y = yScale(point.capital);
+                        return `<circle cx="${x}" cy="${y}" r="3" fill="${color}" opacity="0.8"/>`;
+                    }).join('')).join('')}
+                </svg>
+            `;
+
+            container.innerHTML = svg;
+        }
+
+        // Step 7: Render breakdown chart (stacked bar chart)
+        function renderBreakdownChart() {
+            const data = calculateProjectionBreakdown();
+            const width = chartBreakdown.clientWidth || 300;
+            const height = 400;
+            const padding = 40;
+            const horizon = appState.planning.horizon;
+
+            // Find max total
+            const maxTotal = Math.max(...data.map(d => d.total));
+
+            const barWidth = (width - 2 * padding) / (horizon + 1) * 0.6;
+            const xScale = (year) => padding + (year / horizon) * (width - 2 * padding);
+            const yScale = (value) => height - padding - (value / maxTotal) * (height - 2 * padding);
+
+            // Format Y axis values
+            const formatYAxisValue = (value) => {
+                if (value >= 1000000) {
+                    return (value / 1000000).toFixed(1) + 'M';
+                } else if (value >= 1000) {
+                    return (value / 1000).toFixed(0) + 'K';
+                }
+                return value.toFixed(0);
+            };
+
+            let svg = `
+                <svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Grid lines -->
+                    ${[0, 0.5, 1].map(ratio => {
+                        const y = height - padding - ratio * (height - 2 * padding);
+                        const value = ratio * maxTotal;
+                        return `
+                            <line x1="${padding}" y1="${y}" x2="${width - padding}" y2="${y}" stroke="#e2e8f0" stroke-width="1"/>
+                            <text x="${padding - 5}" y="${y + 4}" text-anchor="end" font-size="10" fill="#999">${formatYAxisValue(value)}</text>
+                        `;
+                    }).join('')}
+
+                    <!-- X axis labels -->
+                    ${data.map(point => {
+                        const x = xScale(point.year);
+                        return `<text x="${x}" y="${height - padding + 20}" text-anchor="middle" font-size="10" fill="#999">${point.year}г</text>`;
+                    }).join('')}
+
+                    <!-- Stacked bars -->
+                    ${data.map(point => {
+                        const x = xScale(point.year) - barWidth / 2;
+                        const baseHeight = (point.baseAssets / maxTotal) * (height - 2 * padding);
+                        const contributionsHeight = (point.totalContributions / maxTotal) * (height - 2 * padding);
+                        const gainsHeight = (point.investmentGains / maxTotal) * (height - 2 * padding);
+
+                        return `
+                            <!-- Base assets (green) -->
+                            <rect x="${x}" y="${height - padding - baseHeight}" width="${barWidth}" height="${baseHeight}" fill="#10b981" opacity="0.8"/>
+
+                            <!-- Contributions (blue) -->
+                            <rect x="${x}" y="${height - padding - baseHeight - contributionsHeight}" width="${barWidth}" height="${contributionsHeight}" fill="#3b82f6" opacity="0.8"/>
+
+                            <!-- Investment gains (amber) -->
+                            <rect x="${x}" y="${height - padding - baseHeight - contributionsHeight - gainsHeight}" width="${barWidth}" height="${gainsHeight}" fill="#f59e0b" opacity="0.8"/>
+                        `;
+                    }).join('')}
+                </svg>
+            `;
+
+            chartBreakdown.innerHTML = svg;
+        }
+
+        // Step 7: Render combined chart (both lines on one chart for selected scenario)
+        function renderCombinedChart(scenario) {
+            const scenarioColors = {
+                pessimistic: '#ef4444',
+                base: '#3b82f6',
+                optimistic: '#10b981'
+            };
+
+            const color = scenarioColors[scenario];
+
+            // Get data for both cases (with and without)
+            const dataWithout = calculateProjectionWithoutContributions(scenario);
+            const dataWith = calculateProjectionWithRegularInvestments(scenario);
+
+            const width = chartCombined.clientWidth || 300;
+            const height = 350;
+            const padding = 40;
+
+            // Find global min/max across both datasets
+            const allCapitals = [...dataWithout.map(d => d.capital), ...dataWith.map(d => d.capital)];
+            const maxCapital = Math.max(...allCapitals);
+            const minCapital = Math.min(...allCapitals);
+
+            const horizon = appState.planning.horizon;
+            const xScale = (year) => padding + (year / horizon) * (width - 2 * padding);
+            const yScale = (capital) => height - padding - ((capital - minCapital) / (maxCapital - minCapital)) * (height - 2 * padding);
+
+            // Generate path for "without" (dashed)
+            let pathWithout = '';
+            dataWithout.forEach((point, i) => {
+                const x = xScale(point.year);
+                const y = yScale(point.capital);
+                if (i === 0) {
+                    pathWithout += `M ${x} ${y}`;
+                } else {
+                    pathWithout += ` L ${x} ${y}`;
+                }
+            });
+
+            // Generate path for "with" (solid)
+            let pathWith = '';
+            dataWith.forEach((point, i) => {
+                const x = xScale(point.year);
+                const y = yScale(point.capital);
+                if (i === 0) {
+                    pathWith += `M ${x} ${y}`;
+                } else {
+                    pathWith += ` L ${x} ${y}`;
+                }
+            });
+
+            // Format Y axis values
+            const formatYAxisValue = (value) => {
+                if (value >= 1000000) {
+                    return (value / 1000000).toFixed(1) + 'M';
+                } else if (value >= 1000) {
+                    return (value / 1000).toFixed(0) + 'K';
+                }
+                return value.toFixed(0);
+            };
+
+            let svg = `
+                <svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Grid lines -->
+                    ${[0, 0.5, 1].map(ratio => {
+                        const y = height - padding - ratio * (height - 2 * padding);
+                        const value = minCapital + ratio * (maxCapital - minCapital);
+                        return `
+                            <line x1="${padding}" y1="${y}" x2="${width - padding}" y2="${y}" stroke="#e2e8f0" stroke-width="1"/>
+                            <text x="${padding - 5}" y="${y + 4}" text-anchor="end" font-size="10" fill="#999">${formatYAxisValue(value)}</text>
+                        `;
+                    }).join('')}
+
+                    <!-- X axis labels -->
+                    ${dataWithout.map(point => {
+                        const x = xScale(point.year);
+                        return `<text x="${x}" y="${height - padding + 20}" text-anchor="middle" font-size="10" fill="#999">${point.year}г</text>`;
+                    }).join('')}
+
+                    <!-- Line WITHOUT (dashed) -->
+                    <path d="${pathWithout}" fill="none" stroke="${color}" stroke-width="2" stroke-dasharray="5,5" opacity="0.6"/>
+
+                    <!-- Line WITH (solid) -->
+                    <path d="${pathWith}" fill="none" stroke="${color}" stroke-width="2" opacity="0.9"/>
+
+                    <!-- Points WITHOUT -->
+                    ${dataWithout.map(point => {
+                        const x = xScale(point.year);
+                        const y = yScale(point.capital);
+                        return `<circle cx="${x}" cy="${y}" r="3" fill="${color}" opacity="0.6"/>`;
+                    }).join('')}
+
+                    <!-- Points WITH -->
+                    ${dataWith.map(point => {
+                        const x = xScale(point.year);
+                        const y = yScale(point.capital);
+                        return `<circle cx="${x}" cy="${y}" r="3" fill="${color}" opacity="0.9"/>`;
+                    }).join('')}
+                </svg>
+            `;
+
+            chartCombined.innerHTML = svg;
+        }
+
         // Navigate to step
         function goToStep(step) {
             appState.currentStep = step;
@@ -2068,6 +2703,9 @@
             } else if (step === 6) {
                 btnNext.disabled = !validateStep6();
                 btnNext.textContent = 'Готово ✓';
+            } else if (step === 7) {
+                btnNext.disabled = false;
+                btnNext.textContent = '🔄 Начать сначала';
             } else {
                 btnNext.disabled = false;
             }
@@ -2100,6 +2738,13 @@
                 monthlySavingsReminder.textContent = formatCurrency(savings);
                 updateInvestmentAmounts();
                 checkAllocationBounds();
+            }
+
+            // If step 7, render comparison charts and breakdown
+            if (step === 7) {
+                renderComparisonCharts();
+                renderBreakdownChart();
+                renderCombinedChart('base');
             }
 
             saveData();
@@ -2599,11 +3244,21 @@
                     goToStep(6);
                 }
             } else if (appState.currentStep === 6) {
-                // Final step
+                if (validateStep6()) {
+                    goToStep(7);
+                }
+            } else if (appState.currentStep === 7) {
+                // Reset and start over
                 if (tg) {
-                    tg.showAlert('Прогноз готов! Данные сохранены.');
+                    tg.showConfirm('Начать новый расчет?', (confirmed) => {
+                        if (confirmed) {
+                            location.reload();
+                        }
+                    });
                 } else {
-                    alert('Прогноз готов!');
+                    if (confirm('Начать новый расчет?')) {
+                        location.reload();
+                    }
                 }
             }
         });
@@ -2925,6 +3580,19 @@
             cashAllocationValue.textContent = newValue + '%';
             updateSliderBackground(cashAllocation);
             autoBalanceSliders('cash', newValue);
+        });
+
+        // Step 7: Scenario switcher buttons
+        scenarioBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all buttons
+                scenarioBtns.forEach(b => b.classList.remove('active'));
+                // Add active class to clicked button
+                btn.classList.add('active');
+                // Render chart with selected scenario
+                const scenario = btn.dataset.scenario;
+                renderCombinedChart(scenario);
+            });
         });
 
         // Initialize
