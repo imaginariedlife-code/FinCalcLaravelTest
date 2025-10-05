@@ -859,6 +859,49 @@
             font-style: italic;
         }
 
+        .allocation-returns {
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: #F9FAFB;
+            border-radius: 8px;
+            font-size: 0.7rem;
+        }
+
+        .allocation-returns-title {
+            font-weight: 600;
+            color: var(--tg-theme-hint-color);
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .allocation-return-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.25rem 0;
+        }
+
+        .allocation-return-scenario {
+            font-weight: 600;
+        }
+
+        .allocation-return-scenario.pessimistic {
+            color: #EF4444;
+        }
+
+        .allocation-return-scenario.base {
+            color: #3B82F6;
+        }
+
+        .allocation-return-scenario.optimistic {
+            color: #10B981;
+        }
+
+        .allocation-return-formula {
+            color: var(--tg-theme-hint-color);
+            font-size: 0.65rem;
+        }
+
         .savings-reminder {
             background: linear-gradient(135deg, #FEF3C7 0%, white 100%);
             border: 2px solid #FCD34D;
@@ -946,6 +989,33 @@
             font-size: 0.9rem;
             font-weight: 600;
             color: var(--tg-theme-text-color);
+            flex: 1;
+        }
+
+        .allocation-toggle-btn {
+            background: none;
+            border: none;
+            font-size: 0.7rem;
+            color: var(--tg-theme-link-color);
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: opacity 0.2s;
+        }
+
+        .allocation-toggle-btn:active {
+            opacity: 0.6;
+        }
+
+        .allocation-toggle-icon {
+            font-size: 0.9rem;
+            transition: transform 0.3s;
+        }
+
+        .allocation-toggle-icon.expanded {
+            transform: rotate(180deg);
         }
 
         .allocation-slider-container {
@@ -1378,6 +1448,10 @@
                             <div class="allocation-header">
                                 <span class="allocation-icon">📈</span>
                                 <span class="allocation-name">Фонды акций</span>
+                                <button class="allocation-toggle-btn" onclick="toggleAssetReturns('stocks')">
+                                    <span class="allocation-toggle-icon" id="stocksToggleIcon">▼</span>
+                                    <span>доходность</span>
+                                </button>
                             </div>
                             <div class="allocation-slider-container">
                                 <input type="range" class="allocation-slider" id="stocksAllocation" min="0" max="100" step="5" value="0">
@@ -1385,12 +1459,17 @@
                             </div>
                             <div class="allocation-recommended" id="stocksRecommended">рекомендовано 0%</div>
                             <div class="allocation-warning hidden" id="stocksWarning"></div>
+                            <div class="allocation-returns hidden" id="stocksReturns"></div>
                         </div>
 
                         <div class="allocation-item">
                             <div class="allocation-header">
                                 <span class="allocation-icon">📄</span>
                                 <span class="allocation-name">Фонды облигаций</span>
+                                <button class="allocation-toggle-btn" onclick="toggleAssetReturns('bonds')">
+                                    <span class="allocation-toggle-icon" id="bondsToggleIcon">▼</span>
+                                    <span>доходность</span>
+                                </button>
                             </div>
                             <div class="allocation-slider-container">
                                 <input type="range" class="allocation-slider" id="bondsAllocation" min="0" max="100" step="5" value="0">
@@ -1398,12 +1477,17 @@
                             </div>
                             <div class="allocation-recommended" id="bondsRecommended">рекомендовано 0%</div>
                             <div class="allocation-warning hidden" id="bondsWarning"></div>
+                            <div class="allocation-returns hidden" id="bondsReturns"></div>
                         </div>
 
                         <div class="allocation-item">
                             <div class="allocation-header">
                                 <span class="allocation-icon">💰</span>
                                 <span class="allocation-name">Депозиты</span>
+                                <button class="allocation-toggle-btn" onclick="toggleAssetReturns('cash')">
+                                    <span class="allocation-toggle-icon" id="cashToggleIcon">▼</span>
+                                    <span>доходность</span>
+                                </button>
                             </div>
                             <div class="allocation-slider-container">
                                 <input type="range" class="allocation-slider" id="cashAllocation" min="0" max="100" step="5" value="0">
@@ -1411,6 +1495,7 @@
                             </div>
                             <div class="allocation-recommended" id="cashRecommended">рекомендовано 0%</div>
                             <div class="allocation-warning hidden" id="cashWarning"></div>
+                            <div class="allocation-returns hidden" id="cashReturns"></div>
                         </div>
 
                         <div class="allocation-item allocation-item-disabled">
@@ -1538,6 +1623,30 @@
             conservative: { name: 'Консервативный', icon: '🛡️' },
             moderate: { name: 'Умеренный', icon: '⚖️' },
             aggressive: { name: 'Агрессивный', icon: '🚀' }
+        };
+
+        // Expected returns deltas for each asset type and scenario (from PDF)
+        const ASSET_RETURN_DELTAS = {
+            stocks: {
+                pessimistic: -4,
+                base: 5,
+                optimistic: 10
+            },
+            bonds: {
+                pessimistic: -2,
+                base: 1,
+                optimistic: 5
+            },
+            cash: {
+                pessimistic: -2,
+                base: -1,
+                optimistic: 0
+            },
+            realty: {
+                pessimistic: 0,
+                base: 1,
+                optimistic: 2
+            }
         };
 
         // DOM Elements
@@ -1986,6 +2095,7 @@
             if (step === 6) {
                 updateProfileSummary();
                 applyRecommendedAllocation();
+                updateAssetReturns();
                 const savings = appState.profile.monthlyIncome - appState.profile.monthlyExpenses;
                 monthlySavingsReminder.textContent = formatCurrency(savings);
                 updateInvestmentAmounts();
@@ -2573,6 +2683,16 @@
             const oldValue = appState.regularInvestments.allocation[changedAsset];
             const delta = newValue - oldValue;
 
+            // Update the changed asset
+            appState.regularInvestments.allocation[changedAsset] = newValue;
+
+            // If delta is 0, nothing to balance
+            if (delta === 0) {
+                checkAllocationBounds();
+                updateAllocationTotal();
+                return;
+            }
+
             // Get other active assets (not realty, not the changed one)
             const otherAssets = ['stocks', 'bonds', 'cash'].filter(a => a !== changedAsset);
 
@@ -2584,24 +2704,34 @@
 
             // If otherTotal is 0, distribute evenly
             if (otherTotal === 0) {
-                const perAsset = -delta / otherAssets.length;
-                otherAssets.forEach(asset => {
-                    const newVal = Math.round(appState.regularInvestments.allocation[asset] + perAsset);
-                    appState.regularInvestments.allocation[asset] = Math.max(0, Math.min(100, newVal));
+                const perAsset = Math.round(-delta / otherAssets.length);
+                otherAssets.forEach((asset, index) => {
+                    // Last asset gets the remainder to ensure sum = 100
+                    const adjustment = (index === otherAssets.length - 1)
+                        ? (100 - newValue - perAsset * (otherAssets.length - 1))
+                        : perAsset;
+                    appState.regularInvestments.allocation[asset] = Math.max(0, Math.min(100, adjustment));
                 });
             } else {
                 // Distribute delta proportionally
-                otherAssets.forEach(asset => {
-                    const proportion = appState.regularInvestments.allocation[asset] / otherTotal;
-                    const change = -delta * proportion;
-                    let newVal = Math.round(appState.regularInvestments.allocation[asset] + change);
+                let totalAdjusted = newValue;
+                otherAssets.forEach((asset, index) => {
+                    if (index === otherAssets.length - 1) {
+                        // Last asset gets the remainder to ensure sum = 100
+                        appState.regularInvestments.allocation[asset] = 100 - totalAdjusted;
+                    } else {
+                        const proportion = appState.regularInvestments.allocation[asset] / otherTotal;
+                        const change = -delta * proportion;
+                        let newVal = Math.round(appState.regularInvestments.allocation[asset] + change);
 
-                    // Ensure within bounds (±20% from recommended)
-                    const min = Math.max(0, recommended[asset] - 20);
-                    const max = Math.min(100, recommended[asset] + 20);
-                    newVal = Math.max(min, Math.min(max, newVal));
+                        // Ensure within bounds
+                        const min = Math.max(0, recommended[asset] - 20);
+                        const max = Math.min(100, recommended[asset] + 20);
+                        newVal = Math.max(min, Math.min(max, newVal));
 
-                    appState.regularInvestments.allocation[asset] = newVal;
+                        appState.regularInvestments.allocation[asset] = newVal;
+                        totalAdjusted += newVal;
+                    }
                 });
             }
 
@@ -2663,6 +2793,64 @@
             profileRisk.textContent = `${riskInfo.icon} ${riskInfo.name}`;
         }
 
+        // Step 6: Update expected returns display for each asset
+        function updateAssetReturns() {
+            const inflation = appState.planning.inflation;
+            const assets = ['stocks', 'bonds', 'cash'];
+            const assetElements = {
+                stocks: document.getElementById('stocksReturns'),
+                bonds: document.getElementById('bondsReturns'),
+                cash: document.getElementById('cashReturns')
+            };
+
+            assets.forEach(asset => {
+                const deltas = ASSET_RETURN_DELTAS[asset];
+                const el = assetElements[asset];
+
+                const scenarios = [
+                    {
+                        name: 'Пессимистичный',
+                        className: 'pessimistic',
+                        delta: deltas.pessimistic
+                    },
+                    {
+                        name: 'Базовый',
+                        className: 'base',
+                        delta: deltas.base
+                    },
+                    {
+                        name: 'Оптимистичный',
+                        className: 'optimistic',
+                        delta: deltas.optimistic
+                    }
+                ];
+
+                let html = '<div class="allocation-returns-title">Ожидаемая среднегодовая доходность:</div>';
+
+                scenarios.forEach(scenario => {
+                    const totalReturn = inflation + scenario.delta;
+                    const sign = scenario.delta >= 0 ? '+' : '';
+                    html += `
+                        <div class="allocation-return-row">
+                            <span class="allocation-return-scenario ${scenario.className}">${scenario.name}</span>
+                            <span class="allocation-return-formula">${inflation}% ${sign}${scenario.delta}% = ${totalReturn}%</span>
+                        </div>
+                    `;
+                });
+
+                el.innerHTML = html;
+            });
+        }
+
+        // Step 6: Toggle asset returns visibility
+        function toggleAssetReturns(asset) {
+            const returnsEl = document.getElementById(asset + 'Returns');
+            const iconEl = document.getElementById(asset + 'ToggleIcon');
+
+            returnsEl.classList.toggle('hidden');
+            iconEl.classList.toggle('expanded');
+        }
+
         // Step 6: Update investment amounts
         function updateInvestmentAmounts() {
             const savings = appState.profile.monthlyIncome - appState.profile.monthlyExpenses;
@@ -2720,7 +2908,6 @@
         // Step 6: Allocation sliders (with auto-balance)
         stocksAllocation.addEventListener('input', () => {
             const newValue = parseInt(stocksAllocation.value);
-            appState.regularInvestments.allocation.stocks = newValue;
             stocksAllocationValue.textContent = newValue + '%';
             updateSliderBackground(stocksAllocation);
             autoBalanceSliders('stocks', newValue);
@@ -2728,7 +2915,6 @@
 
         bondsAllocation.addEventListener('input', () => {
             const newValue = parseInt(bondsAllocation.value);
-            appState.regularInvestments.allocation.bonds = newValue;
             bondsAllocationValue.textContent = newValue + '%';
             updateSliderBackground(bondsAllocation);
             autoBalanceSliders('bonds', newValue);
@@ -2736,7 +2922,6 @@
 
         cashAllocation.addEventListener('input', () => {
             const newValue = parseInt(cashAllocation.value);
-            appState.regularInvestments.allocation.cash = newValue;
             cashAllocationValue.textContent = newValue + '%';
             updateSliderBackground(cashAllocation);
             autoBalanceSliders('cash', newValue);
