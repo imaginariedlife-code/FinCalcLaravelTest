@@ -777,6 +777,268 @@
             text-align: right;
             font-weight: 600;
         }
+
+        /* Step 6: Regular Investments Styles */
+        .profile-summary-card {
+            background: linear-gradient(135deg, #EDE9FE 0%, white 100%);
+            border: 2px solid #C4B5FD;
+            margin-bottom: 1rem;
+        }
+
+        .profile-summary-header {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #5B21B6;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .profile-summary-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .profile-summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .profile-summary-label {
+            font-size: 0.9rem;
+            color: #6B21A8;
+        }
+
+        .profile-summary-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #5B21B6;
+        }
+
+        .profile-summary-hint {
+            font-size: 0.85rem;
+            color: #7C3AED;
+            text-align: center;
+            padding-top: 0.75rem;
+            border-top: 1px solid #DDD6FE;
+        }
+
+        .allocation-recommended {
+            font-size: 0.75rem;
+            color: var(--tg-theme-hint-color);
+            margin-top: 0.25rem;
+            text-align: center;
+        }
+
+        .allocation-warning {
+            font-size: 0.75rem;
+            color: #EF4444;
+            margin-top: 0.25rem;
+            text-align: center;
+            padding: 0.5rem;
+            background: #FEE2E2;
+            border-radius: 6px;
+        }
+
+        .allocation-item-disabled {
+            opacity: 0.5;
+        }
+
+        .allocation-item-disabled .allocation-slider {
+            cursor: not-allowed;
+            background: #cbd5e1 !important;
+        }
+
+        .allocation-disabled-hint {
+            font-size: 0.75rem;
+            color: var(--tg-theme-hint-color);
+            margin-top: 0.5rem;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .savings-reminder {
+            background: linear-gradient(135deg, #FEF3C7 0%, white 100%);
+            border: 2px solid #FCD34D;
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .savings-reminder-icon {
+            font-size: 2.5rem;
+        }
+
+        .savings-reminder-content {
+            flex: 1;
+        }
+
+        .savings-reminder-label {
+            font-size: 0.85rem;
+            color: #92400E;
+            margin-bottom: 0.25rem;
+        }
+
+        .savings-reminder-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #92400E;
+        }
+
+        .investment-amount-card {
+            background: linear-gradient(135deg, #E0E7FF 0%, white 100%);
+            border: 2px solid #A5B4FC;
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .investment-amount-label {
+            font-size: 0.85rem;
+            color: #3730A3;
+            margin-bottom: 0.5rem;
+        }
+
+        .investment-amount-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #3730A3;
+        }
+
+        .investment-amount-hint {
+            font-size: 0.75rem;
+            color: #6366F1;
+            margin-top: 0.5rem;
+        }
+
+        .asset-allocation {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .allocation-item {
+            margin-bottom: 1.25rem;
+        }
+
+        .allocation-item:last-of-type {
+            margin-bottom: 1rem;
+        }
+
+        .allocation-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .allocation-icon {
+            font-size: 1.25rem;
+        }
+
+        .allocation-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--tg-theme-text-color);
+        }
+
+        .allocation-slider-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .allocation-slider {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #e2e8f0;
+            outline: none;
+            -webkit-appearance: none;
+            touch-action: none;
+        }
+
+        .allocation-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--tg-theme-button-color);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease;
+        }
+
+        .allocation-slider::-webkit-slider-thumb:active {
+            transform: scale(1.2);
+        }
+
+        .allocation-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--tg-theme-button-color);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            border: none;
+            transition: transform 0.2s ease;
+        }
+
+        .allocation-slider::-moz-range-thumb:active {
+            transform: scale(1.2);
+        }
+
+        .allocation-value {
+            min-width: 50px;
+            text-align: right;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--tg-theme-button-color);
+        }
+
+        .allocation-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0 0.5rem;
+            border-top: 2px solid #e2e8f0;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .allocation-total-value {
+            color: var(--tg-theme-button-color);
+        }
+
+        .allocation-total-value.valid {
+            color: #10b981;
+        }
+
+        .allocation-total-value.invalid {
+            color: #ef4444;
+        }
+
+        .allocation-hint {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--tg-theme-hint-color);
+            margin-top: 0.5rem;
+        }
+
+        .allocation-hint.error {
+            color: #ef4444;
+        }
+
+        .allocation-hint.success {
+            color: #10b981;
+        }
     </style>
 </head>
 <body>
@@ -794,6 +1056,12 @@
             </div>
             <div class="progress-step" id="progress-4">
                 <span class="progress-step-label">4</span>
+            </div>
+            <div class="progress-step" id="progress-5">
+                <span class="progress-step-label">5</span>
+            </div>
+            <div class="progress-step" id="progress-6">
+                <span class="progress-step-label">6</span>
             </div>
         </div>
 
@@ -1056,6 +1324,124 @@
                 </p>
             </div>
         </div>
+
+        <!-- Step 6: Regular Investments -->
+        <div class="step" id="step-6">
+            <h2 class="step-title">Регулярные инвестиции</h2>
+            <p class="step-description">А теперь давайте представим, что вы будете регулярно откладывать разницу между доходами и расходами</p>
+
+            <div class="card profile-summary-card">
+                <div class="profile-summary-header">📊 Ваш профиль</div>
+                <div class="profile-summary-content">
+                    <div class="profile-summary-item">
+                        <span class="profile-summary-label">Горизонт:</span>
+                        <span class="profile-summary-value" id="profileHorizon">5 лет</span>
+                    </div>
+                    <div class="profile-summary-item">
+                        <span class="profile-summary-label">Риск-профиль:</span>
+                        <span class="profile-summary-value" id="profileRisk">⚖️ Умеренный</span>
+                    </div>
+                </div>
+                <div class="profile-summary-hint">
+                    На основе этих параметров мы рекомендуем следующее распределение активов:
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="savings-reminder">
+                    <div class="savings-reminder-icon">💰</div>
+                    <div class="savings-reminder-content">
+                        <div class="savings-reminder-label">Ваши ежемесячные сбережения</div>
+                        <div class="savings-reminder-value" id="monthlySavingsReminder">0 ₽</div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <label class="form-label">Какую часть сбережений будете инвестировать?</label>
+                    <div class="slider-container">
+                        <div class="slider-value" id="investmentPercentValue">100%</div>
+                        <input type="range" class="slider" id="investmentPercentSlider" min="0" max="100" step="10" value="100">
+                        <div class="slider-hint">0% — 100%</div>
+                    </div>
+                </div>
+
+                <div class="investment-amount-card">
+                    <div class="investment-amount-label">Ежемесячные инвестиции</div>
+                    <div class="investment-amount-value" id="monthlyInvestmentAmount">0 ₽</div>
+                    <div class="investment-amount-hint">= <span id="annualInvestmentAmount">0 ₽</span> в год</div>
+                </div>
+
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <label class="form-label">В какие активы будете инвестировать?</label>
+                    <div class="asset-allocation">
+                        <div class="allocation-item">
+                            <div class="allocation-header">
+                                <span class="allocation-icon">📈</span>
+                                <span class="allocation-name">Фонды акций</span>
+                            </div>
+                            <div class="allocation-slider-container">
+                                <input type="range" class="allocation-slider" id="stocksAllocation" min="0" max="100" step="5" value="0">
+                                <span class="allocation-value" id="stocksAllocationValue">0%</span>
+                            </div>
+                            <div class="allocation-recommended" id="stocksRecommended">рекомендовано 0%</div>
+                            <div class="allocation-warning hidden" id="stocksWarning"></div>
+                        </div>
+
+                        <div class="allocation-item">
+                            <div class="allocation-header">
+                                <span class="allocation-icon">📄</span>
+                                <span class="allocation-name">Фонды облигаций</span>
+                            </div>
+                            <div class="allocation-slider-container">
+                                <input type="range" class="allocation-slider" id="bondsAllocation" min="0" max="100" step="5" value="0">
+                                <span class="allocation-value" id="bondsAllocationValue">0%</span>
+                            </div>
+                            <div class="allocation-recommended" id="bondsRecommended">рекомендовано 0%</div>
+                            <div class="allocation-warning hidden" id="bondsWarning"></div>
+                        </div>
+
+                        <div class="allocation-item">
+                            <div class="allocation-header">
+                                <span class="allocation-icon">💰</span>
+                                <span class="allocation-name">Депозиты</span>
+                            </div>
+                            <div class="allocation-slider-container">
+                                <input type="range" class="allocation-slider" id="cashAllocation" min="0" max="100" step="5" value="0">
+                                <span class="allocation-value" id="cashAllocationValue">0%</span>
+                            </div>
+                            <div class="allocation-recommended" id="cashRecommended">рекомендовано 0%</div>
+                            <div class="allocation-warning hidden" id="cashWarning"></div>
+                        </div>
+
+                        <div class="allocation-item allocation-item-disabled">
+                            <div class="allocation-header">
+                                <span class="allocation-icon">🏠</span>
+                                <span class="allocation-name">Недвижимость</span>
+                            </div>
+                            <div class="allocation-slider-container">
+                                <input type="range" class="allocation-slider" id="realtyAllocation" min="0" max="0" step="5" value="0" disabled>
+                                <span class="allocation-value" id="realtyAllocationValue">0%</span>
+                            </div>
+                            <div class="allocation-disabled-hint">
+                                💡 Регулярно и по чуть-чуть инвестировать в недвижимость не выйдет
+                            </div>
+                        </div>
+
+                        <div class="allocation-total">
+                            <span>Итого:</span>
+                            <span id="totalAllocation" class="allocation-total-value">0%</span>
+                        </div>
+                        <div class="allocation-hint" id="allocationHint">Распределите 100% по активам</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-2">
+                <p style="font-size: 0.85rem; color: var(--tg-theme-hint-color); text-align: center;">
+                    💡 Регулярные инвестиции позволяют усреднить цену покупки и снизить влияние волатильности рынка
+                </p>
+            </div>
+        </div>
     </div>
 
     <!-- Navigation Buttons -->
@@ -1110,6 +1496,15 @@
                 horizon: 5,
                 riskProfile: null,
                 inflation: 11
+            },
+            regularInvestments: {
+                investmentPercent: 100,
+                allocation: {
+                    stocks: 0,
+                    bonds: 0,
+                    cash: 0,
+                    realty: 0
+                }
             }
         };
 
@@ -1118,6 +1513,31 @@
             bonds: { name: 'Фонды облигаций', icon: '📄' },
             cash: { name: 'Депозиты', icon: '💰' },
             realty: { name: 'Недвижимость', icon: '🏠' }
+        };
+
+        // Recommended allocations based on horizon and risk profile (from PDF, section 4)
+        const RECOMMENDED_ALLOCATIONS = {
+            '3-4': {
+                conservative: { stocks: 0, bonds: 80, cash: 20, realty: 0 },
+                moderate: { stocks: 10, bonds: 70, cash: 20, realty: 0 },
+                aggressive: { stocks: 70, bonds: 30, cash: 0, realty: 0 }
+            },
+            '5-9': {
+                conservative: { stocks: 10, bonds: 80, cash: 10, realty: 0 },
+                moderate: { stocks: 30, bonds: 60, cash: 10, realty: 0 },
+                aggressive: { stocks: 80, bonds: 20, cash: 0, realty: 0 }
+            },
+            '10+': {
+                conservative: { stocks: 20, bonds: 70, cash: 10, realty: 0 },
+                moderate: { stocks: 40, bonds: 50, cash: 10, realty: 0 },
+                aggressive: { stocks: 90, bonds: 10, cash: 0, realty: 0 }
+            }
+        };
+
+        const riskProfileInfo = {
+            conservative: { name: 'Консервативный', icon: '🛡️' },
+            moderate: { name: 'Умеренный', icon: '⚖️' },
+            aggressive: { name: 'Агрессивный', icon: '🚀' }
         };
 
         // DOM Elements
@@ -1168,6 +1588,31 @@
         const scenarioModal = document.getElementById('scenarioModal');
         const modalClose = document.getElementById('modalClose');
         const modalBody = document.getElementById('modalBody');
+
+        // Step 6 elements
+        const profileHorizon = document.getElementById('profileHorizon');
+        const profileRisk = document.getElementById('profileRisk');
+        const monthlySavingsReminder = document.getElementById('monthlySavingsReminder');
+        const investmentPercentSlider = document.getElementById('investmentPercentSlider');
+        const investmentPercentValue = document.getElementById('investmentPercentValue');
+        const monthlyInvestmentAmount = document.getElementById('monthlyInvestmentAmount');
+        const annualInvestmentAmount = document.getElementById('annualInvestmentAmount');
+        const stocksAllocation = document.getElementById('stocksAllocation');
+        const bondsAllocation = document.getElementById('bondsAllocation');
+        const cashAllocation = document.getElementById('cashAllocation');
+        const realtyAllocation = document.getElementById('realtyAllocation');
+        const stocksAllocationValue = document.getElementById('stocksAllocationValue');
+        const bondsAllocationValue = document.getElementById('bondsAllocationValue');
+        const cashAllocationValue = document.getElementById('cashAllocationValue');
+        const realtyAllocationValue = document.getElementById('realtyAllocationValue');
+        const stocksRecommended = document.getElementById('stocksRecommended');
+        const bondsRecommended = document.getElementById('bondsRecommended');
+        const cashRecommended = document.getElementById('cashRecommended');
+        const stocksWarning = document.getElementById('stocksWarning');
+        const bondsWarning = document.getElementById('bondsWarning');
+        const cashWarning = document.getElementById('cashWarning');
+        const totalAllocation = document.getElementById('totalAllocation');
+        const allocationHint = document.getElementById('allocationHint');
 
         // Format currency
         function formatCurrency(value) {
@@ -1265,6 +1710,20 @@
         function validateStep4() {
             const inflation = parseFloat(parseNumberWithSpaces(inflationRateInput.value));
             return appState.planning.riskProfile && inflation > 0;
+        }
+
+        // Validate Step 5
+        function validateStep5() {
+            return true; // Results page, always valid
+        }
+
+        // Validate Step 6
+        function validateStep6() {
+            const total = appState.regularInvestments.allocation.stocks +
+                         appState.regularInvestments.allocation.bonds +
+                         appState.regularInvestments.allocation.cash +
+                         appState.regularInvestments.allocation.realty;
+            return total === 100;
         }
 
         // Update horizon display
@@ -1495,8 +1954,18 @@
                 btnNext.disabled = !validateStep3();
             } else if (step === 4) {
                 btnNext.disabled = !validateStep4();
+            } else if (step === 5) {
+                btnNext.disabled = !validateStep5();
+            } else if (step === 6) {
+                btnNext.disabled = !validateStep6();
+                btnNext.textContent = 'Готово ✓';
             } else {
                 btnNext.disabled = false;
+            }
+
+            // Reset button text for non-final steps
+            if (step < 6) {
+                btnNext.textContent = 'Далее →';
             }
 
             // Scroll to top
@@ -1511,6 +1980,16 @@
                 resultsHorizon.textContent = `${years} ${yearText}`;
 
                 renderChart();
+            }
+
+            // If step 6, update profile summary, apply recommended allocation, and update amounts
+            if (step === 6) {
+                updateProfileSummary();
+                applyRecommendedAllocation();
+                const savings = appState.profile.monthlyIncome - appState.profile.monthlyExpenses;
+                monthlySavingsReminder.textContent = formatCurrency(savings);
+                updateInvestmentAmounts();
+                checkAllocationBounds();
             }
 
             saveData();
@@ -2006,6 +2485,10 @@
                     goToStep(5);
                 }
             } else if (appState.currentStep === 5) {
+                if (validateStep5()) {
+                    goToStep(6);
+                }
+            } else if (appState.currentStep === 6) {
                 // Final step
                 if (tg) {
                     tg.showAlert('Прогноз готов! Данные сохранены.');
@@ -2025,6 +2508,240 @@
         window.deleteAsset = deleteAsset;
         window.deleteLiability = deleteLiability;
 
+        // Step 6: Get recommended allocation based on horizon and risk profile
+        function getRecommendedAllocation() {
+            const horizon = appState.planning.horizon;
+            const riskProfile = appState.planning.riskProfile;
+
+            // Determine horizon range
+            let horizonKey;
+            if (horizon <= 4) {
+                horizonKey = '3-4';
+            } else if (horizon >= 5 && horizon <= 9) {
+                horizonKey = '5-9';
+            } else {
+                horizonKey = '10+';
+            }
+
+            return RECOMMENDED_ALLOCATIONS[horizonKey][riskProfile];
+        }
+
+        // Step 6: Apply recommended allocation to sliders
+        function applyRecommendedAllocation() {
+            const recommended = getRecommendedAllocation();
+
+            // Set allocation values in appState
+            appState.regularInvestments.allocation.stocks = recommended.stocks;
+            appState.regularInvestments.allocation.bonds = recommended.bonds;
+            appState.regularInvestments.allocation.cash = recommended.cash;
+            appState.regularInvestments.allocation.realty = recommended.realty;
+
+            // Update sliders
+            stocksAllocation.value = recommended.stocks;
+            bondsAllocation.value = recommended.bonds;
+            cashAllocation.value = recommended.cash;
+            realtyAllocation.value = recommended.realty;
+
+            // Update displayed values
+            stocksAllocationValue.textContent = recommended.stocks + '%';
+            bondsAllocationValue.textContent = recommended.bonds + '%';
+            cashAllocationValue.textContent = recommended.cash + '%';
+            realtyAllocationValue.textContent = recommended.realty + '%';
+
+            // Update slider backgrounds
+            updateSliderBackground(stocksAllocation);
+            updateSliderBackground(bondsAllocation);
+            updateSliderBackground(cashAllocation);
+
+            // Set min/max bounds (±20% from recommended)
+            stocksAllocation.min = Math.max(0, recommended.stocks - 20);
+            stocksAllocation.max = Math.min(100, recommended.stocks + 20);
+            bondsAllocation.min = Math.max(0, recommended.bonds - 20);
+            bondsAllocation.max = Math.min(100, recommended.bonds + 20);
+            cashAllocation.min = Math.max(0, recommended.cash - 20);
+            cashAllocation.max = Math.min(100, recommended.cash + 20);
+
+            // Update recommended text
+            stocksRecommended.textContent = `рекомендовано ${recommended.stocks}%`;
+            bondsRecommended.textContent = `рекомендовано ${recommended.bonds}%`;
+            cashRecommended.textContent = `рекомендовано ${recommended.cash}%`;
+        }
+
+        // Step 6: Auto-balance sliders when one changes
+        function autoBalanceSliders(changedAsset, newValue) {
+            const recommended = getRecommendedAllocation();
+            const oldValue = appState.regularInvestments.allocation[changedAsset];
+            const delta = newValue - oldValue;
+
+            // Get other active assets (not realty, not the changed one)
+            const otherAssets = ['stocks', 'bonds', 'cash'].filter(a => a !== changedAsset);
+
+            // Calculate total of other assets
+            let otherTotal = 0;
+            otherAssets.forEach(asset => {
+                otherTotal += appState.regularInvestments.allocation[asset];
+            });
+
+            // If otherTotal is 0, distribute evenly
+            if (otherTotal === 0) {
+                const perAsset = -delta / otherAssets.length;
+                otherAssets.forEach(asset => {
+                    const newVal = Math.round(appState.regularInvestments.allocation[asset] + perAsset);
+                    appState.regularInvestments.allocation[asset] = Math.max(0, Math.min(100, newVal));
+                });
+            } else {
+                // Distribute delta proportionally
+                otherAssets.forEach(asset => {
+                    const proportion = appState.regularInvestments.allocation[asset] / otherTotal;
+                    const change = -delta * proportion;
+                    let newVal = Math.round(appState.regularInvestments.allocation[asset] + change);
+
+                    // Ensure within bounds (±20% from recommended)
+                    const min = Math.max(0, recommended[asset] - 20);
+                    const max = Math.min(100, recommended[asset] + 20);
+                    newVal = Math.max(min, Math.min(max, newVal));
+
+                    appState.regularInvestments.allocation[asset] = newVal;
+                });
+            }
+
+            // Update sliders and values
+            stocksAllocation.value = appState.regularInvestments.allocation.stocks;
+            bondsAllocation.value = appState.regularInvestments.allocation.bonds;
+            cashAllocation.value = appState.regularInvestments.allocation.cash;
+
+            stocksAllocationValue.textContent = appState.regularInvestments.allocation.stocks + '%';
+            bondsAllocationValue.textContent = appState.regularInvestments.allocation.bonds + '%';
+            cashAllocationValue.textContent = appState.regularInvestments.allocation.cash + '%';
+
+            updateSliderBackground(stocksAllocation);
+            updateSliderBackground(bondsAllocation);
+            updateSliderBackground(cashAllocation);
+
+            // Check bounds and update total
+            checkAllocationBounds();
+            updateAllocationTotal();
+        }
+
+        // Step 6: Check if allocation is within ±20% bounds
+        function checkAllocationBounds() {
+            const recommended = getRecommendedAllocation();
+            const assets = ['stocks', 'bonds', 'cash'];
+            const warnings = {
+                stocks: stocksWarning,
+                bonds: bondsWarning,
+                cash: cashWarning
+            };
+
+            assets.forEach(asset => {
+                const current = appState.regularInvestments.allocation[asset];
+                const rec = recommended[asset];
+                const min = Math.max(0, rec - 20);
+                const max = Math.min(100, rec + 20);
+                const warningEl = warnings[asset];
+
+                if (current < min || current > max) {
+                    warningEl.textContent = `⚠️ Отклонение от рекомендации (допустимо ${min}%-${max}%)`;
+                    warningEl.classList.remove('hidden');
+                } else {
+                    warningEl.classList.add('hidden');
+                }
+            });
+        }
+
+        // Step 6: Update profile summary display
+        function updateProfileSummary() {
+            const horizon = appState.planning.horizon;
+            let yearText = 'лет';
+            if (horizon === 1) yearText = 'год';
+            else if (horizon >= 2 && horizon <= 4) yearText = 'года';
+
+            profileHorizon.textContent = `${horizon} ${yearText}`;
+
+            const riskProfile = appState.planning.riskProfile;
+            const riskInfo = riskProfileInfo[riskProfile];
+            profileRisk.textContent = `${riskInfo.icon} ${riskInfo.name}`;
+        }
+
+        // Step 6: Update investment amounts
+        function updateInvestmentAmounts() {
+            const savings = appState.profile.monthlyIncome - appState.profile.monthlyExpenses;
+            const investmentPercent = appState.regularInvestments.investmentPercent;
+            const monthlyAmount = Math.round(savings * investmentPercent / 100);
+            const annualAmount = monthlyAmount * 12;
+
+            monthlyInvestmentAmount.textContent = formatCurrency(monthlyAmount);
+            annualInvestmentAmount.textContent = formatCurrency(annualAmount);
+        }
+
+        // Step 6: Update allocation total
+        function updateAllocationTotal() {
+            const total = appState.regularInvestments.allocation.stocks +
+                         appState.regularInvestments.allocation.bonds +
+                         appState.regularInvestments.allocation.cash +
+                         appState.regularInvestments.allocation.realty;
+
+            totalAllocation.textContent = total + '%';
+
+            // Update visual feedback
+            totalAllocation.classList.remove('valid', 'invalid');
+            allocationHint.classList.remove('success', 'error');
+
+            if (total === 100) {
+                totalAllocation.classList.add('valid');
+                allocationHint.classList.add('success');
+                allocationHint.textContent = '✓ Распределение корректное';
+            } else if (total > 100) {
+                totalAllocation.classList.add('invalid');
+                allocationHint.classList.add('error');
+                allocationHint.textContent = `Превышение на ${total - 100}%`;
+            } else {
+                totalAllocation.classList.add('invalid');
+                allocationHint.classList.add('error');
+                allocationHint.textContent = `Осталось распределить ${100 - total}%`;
+            }
+
+            // Update button state
+            if (appState.currentStep === 6) {
+                btnNext.disabled = !validateStep6();
+            }
+
+            saveData();
+        }
+
+        // Step 6: Investment percent slider
+        investmentPercentSlider.addEventListener('input', () => {
+            appState.regularInvestments.investmentPercent = parseInt(investmentPercentSlider.value);
+            investmentPercentValue.textContent = investmentPercentSlider.value + '%';
+            updateSliderBackground(investmentPercentSlider);
+            updateInvestmentAmounts();
+        });
+
+        // Step 6: Allocation sliders (with auto-balance)
+        stocksAllocation.addEventListener('input', () => {
+            const newValue = parseInt(stocksAllocation.value);
+            appState.regularInvestments.allocation.stocks = newValue;
+            stocksAllocationValue.textContent = newValue + '%';
+            updateSliderBackground(stocksAllocation);
+            autoBalanceSliders('stocks', newValue);
+        });
+
+        bondsAllocation.addEventListener('input', () => {
+            const newValue = parseInt(bondsAllocation.value);
+            appState.regularInvestments.allocation.bonds = newValue;
+            bondsAllocationValue.textContent = newValue + '%';
+            updateSliderBackground(bondsAllocation);
+            autoBalanceSliders('bonds', newValue);
+        });
+
+        cashAllocation.addEventListener('input', () => {
+            const newValue = parseInt(cashAllocation.value);
+            appState.regularInvestments.allocation.cash = newValue;
+            cashAllocationValue.textContent = newValue + '%';
+            updateSliderBackground(cashAllocation);
+            autoBalanceSliders('cash', newValue);
+        });
+
         // Initialize
         loadData();
         updateSliderBackground(incomeSlider);
@@ -2032,6 +2749,14 @@
         updateSliderBackground(horizonSlider);
         updateSavings();
         updateHorizon();
+
+        // Initialize Step 6 sliders
+        updateSliderBackground(investmentPercentSlider);
+        updateSliderBackground(stocksAllocation);
+        updateSliderBackground(bondsAllocation);
+        updateSliderBackground(cashAllocation);
+        updateSliderBackground(realtyAllocation);
+        updateAllocationTotal();
 
         // Initialize button states
         btnAddAsset.disabled = true;
