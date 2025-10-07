@@ -2078,6 +2078,22 @@
             optimistic: { stocks: 10, bonds: 5, cash: 0 }
         };
 
+        // Helper: Calculate weighted return based on actual assets
+        function calculateWeightedReturn(scenario, assets) {
+            const totalAssets = assets.reduce((sum, a) => sum + a.amount, 0);
+            if (totalAssets === 0) return 0;
+
+            let weightedDelta = 0;
+            assets.forEach(asset => {
+                const weight = asset.amount / totalAssets;
+                const assetType = asset.type; // 'stocks', 'bonds', 'cash', 'realty'
+                const delta = ASSET_RETURN_DELTAS[assetType][scenario] || 0;
+                weightedDelta += weight * delta;
+            });
+
+            return weightedDelta / 100;
+        }
+
         // Calculate portfolio projection
         function calculateProjection(scenario) {
             const horizon = appState.planning.horizon;
@@ -2086,22 +2102,8 @@
             // Calculate initial capital from assets
             const totalAssets = appState.assets.reduce((sum, a) => sum + a.amount, 0);
 
-            // Monthly savings from profile
-            const monthlySavings = appState.profile.monthlyIncome - appState.profile.monthlyExpenses;
-
-            // Get returns for scenario
-            const returns = scenarioReturns[scenario];
-
-            // Simple projection: stocks get stock return, bonds get bond return, cash/deposits get cash return
-            // For MVP, assume all goes into stocks based on risk profile
-            let annualReturn = 0;
-            if (appState.planning.riskProfile === 'aggressive') {
-                annualReturn = (inflation + returns.stocks / 100);
-            } else if (appState.planning.riskProfile === 'moderate') {
-                annualReturn = (inflation + (returns.stocks * 0.5 + returns.bonds * 0.5) / 100);
-            } else {
-                annualReturn = (inflation + (returns.bonds * 0.7 + returns.cash * 0.3) / 100);
-            }
+            // Calculate weighted return based on actual assets
+            const annualReturn = inflation + calculateWeightedReturn(scenario, appState.assets);
 
             const projectionData = [];
             let capital = totalAssets;
@@ -2113,9 +2115,8 @@
                 });
 
                 if (year < horizon) {
-                    // Add annual savings
-                    capital += monthlySavings * 12;
-                    // Apply return
+                    // Compound interest: grow existing capital only
+                    // Year N = Year (N-1) × (1 + rate)
                     capital *= (1 + annualReturn);
                 }
             }
@@ -2262,17 +2263,9 @@
             const horizon = appState.planning.horizon;
             const inflation = appState.planning.inflation / 100;
             const totalAssets = appState.assets.reduce((sum, a) => sum + a.amount, 0);
-            const returns = scenarioReturns[scenario];
 
-            // Calculate return based on risk profile
-            let annualReturn = 0;
-            if (appState.planning.riskProfile === 'aggressive') {
-                annualReturn = (inflation + returns.stocks / 100);
-            } else if (appState.planning.riskProfile === 'moderate') {
-                annualReturn = (inflation + (returns.stocks * 0.5 + returns.bonds * 0.5) / 100);
-            } else {
-                annualReturn = (inflation + (returns.bonds * 0.7 + returns.cash * 0.3) / 100);
-            }
+            // Calculate weighted return based on actual assets
+            const annualReturn = inflation + calculateWeightedReturn(scenario, appState.assets);
 
             const projectionData = [];
             let capital = totalAssets;
@@ -2300,33 +2293,40 @@
             const monthlySavings = appState.profile.monthlyIncome - appState.profile.monthlyExpenses;
             const returns = ASSET_RETURN_DELTAS;
 
-            // Calculate weighted return based on user's allocation
+            // Calculate return for base assets (from actual assets)
+            const baseAssetsReturn = inflation + calculateWeightedReturn(scenario, appState.assets);
+
+            // Calculate return for contributions (from allocation in Step 6)
             const allocation = appState.regularInvestments.allocation;
-            const weightedDelta = (
+            const contributionsDelta = (
                 (allocation.stocks / 100) * returns.stocks[scenario] +
                 (allocation.bonds / 100) * returns.bonds[scenario] +
                 (allocation.cash / 100) * returns.cash[scenario]
             );
-            const annualReturn = inflation + (weightedDelta / 100);
+            const contributionsReturn = inflation + (contributionsDelta / 100);
 
             // Monthly investment amount
             const investmentPercent = appState.regularInvestments.investmentPercent / 100;
             const monthlyInvestment = monthlySavings * investmentPercent;
 
             const projectionData = [];
-            let capital = totalAssets;
+            let baseCapital = totalAssets;
+            let contributionsCapital = 0;
 
             for (let year = 0; year <= horizon; year++) {
+                const totalCapital = baseCapital + contributionsCapital;
                 projectionData.push({
                     year: year,
-                    capital: Math.round(capital)
+                    capital: Math.round(totalCapital)
                 });
 
                 if (year < horizon) {
-                    // Add annual contributions
-                    capital += monthlyInvestment * 12;
-                    // Apply weighted return
-                    capital *= (1 + annualReturn);
+                    // Add annual contributions to contributions bucket
+                    contributionsCapital += monthlyInvestment * 12;
+
+                    // Apply different returns to each bucket
+                    baseCapital *= (1 + baseAssetsReturn);
+                    contributionsCapital *= (1 + contributionsReturn);
                 }
             }
 
@@ -2338,46 +2338,55 @@
             const scenario = 'base';
             const horizon = appState.planning.horizon;
             const inflation = appState.planning.inflation / 100;
-            const totalAssets = appState.assets.reduce((sum, a) => sum + a.amount, 0);
+            const initialAssets = appState.assets.reduce((sum, a) => sum + a.amount, 0);
             const monthlySavings = appState.profile.monthlyIncome - appState.profile.monthlyExpenses;
             const returns = ASSET_RETURN_DELTAS;
 
-            // Calculate weighted return
+            // Calculate return for base assets (from actual assets)
+            const baseAssetsReturn = inflation + calculateWeightedReturn(scenario, appState.assets);
+
+            // Calculate return for contributions (from allocation in Step 6)
             const allocation = appState.regularInvestments.allocation;
-            const weightedDelta = (
+            const contributionsDelta = (
                 (allocation.stocks / 100) * returns.stocks[scenario] +
                 (allocation.bonds / 100) * returns.bonds[scenario] +
                 (allocation.cash / 100) * returns.cash[scenario]
             );
-            const annualReturn = inflation + (weightedDelta / 100);
+            const contributionsReturn = inflation + (contributionsDelta / 100);
 
             const investmentPercent = appState.regularInvestments.investmentPercent / 100;
             const monthlyInvestment = monthlySavings * investmentPercent;
 
             const breakdownData = [];
-            let capital = totalAssets;
-            let totalContributions = 0;
-            const baseAssets = totalAssets;
+            let baseAssetsValue = initialAssets;
+            let contributionsValue = 0;
+            let rawContributionsSum = 0;
 
             for (let year = 0; year <= horizon; year++) {
-                const investmentGains = capital - baseAssets - totalContributions;
+                // Calculate investment gains from both buckets
+                const baseGains = baseAssetsValue - initialAssets;
+                const contributionsGains = contributionsValue - rawContributionsSum;
+                const totalGains = baseGains + contributionsGains;
+
+                const total = baseAssetsValue + contributionsValue;
 
                 breakdownData.push({
                     year: year,
-                    baseAssets: baseAssets,
-                    totalContributions: totalContributions,
-                    investmentGains: Math.max(0, investmentGains),
-                    total: capital
+                    baseAssets: Math.round(baseAssetsValue),
+                    totalContributions: Math.round(contributionsValue),
+                    investmentGains: Math.max(0, Math.round(totalGains)),
+                    total: Math.round(total)
                 });
 
                 if (year < horizon) {
                     // Add annual contributions
                     const annualContribution = monthlyInvestment * 12;
-                    capital += annualContribution;
-                    totalContributions += annualContribution;
+                    contributionsValue += annualContribution;
+                    rawContributionsSum += annualContribution;
 
-                    // Apply return
-                    capital *= (1 + annualReturn);
+                    // Apply different returns to each bucket
+                    baseAssetsValue *= (1 + baseAssetsReturn);
+                    contributionsValue *= (1 + contributionsReturn);
                 }
             }
 
