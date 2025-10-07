@@ -1193,7 +1193,8 @@
             flex-wrap: wrap;
         }
 
-        .scenario-btn {
+        .scenario-btn,
+        .scenario-btn-breakdown {
             padding: 0.5rem 1rem;
             border: 2px solid #e2e8f0;
             border-radius: 8px;
@@ -1205,11 +1206,13 @@
             transition: all 0.2s;
         }
 
-        .scenario-btn:active {
+        .scenario-btn:active,
+        .scenario-btn-breakdown:active {
             transform: scale(0.95);
         }
 
-        .scenario-btn.active {
+        .scenario-btn.active,
+        .scenario-btn-breakdown.active {
             background: var(--tg-theme-button-color);
             color: var(--tg-theme-button-text-color);
             border-color: var(--tg-theme-button-color);
@@ -1244,6 +1247,76 @@
             );
             height: 2px;
             margin-top: 0.5px;
+        }
+
+        /* Asset type table */
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .asset-type-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .asset-type-table th {
+            background: #f8fafc;
+            padding: 0.75rem 0.5rem;
+            text-align: right;
+            font-weight: 600;
+            color: var(--tg-theme-text-color);
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .asset-type-table th:first-child {
+            text-align: left;
+        }
+
+        .asset-type-table td {
+            padding: 0.5rem;
+            text-align: right;
+            border-top: 1px solid #e2e8f0;
+            color: var(--tg-theme-text-color);
+        }
+
+        .asset-type-table td:first-child {
+            text-align: left;
+        }
+
+        .asset-type-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .asset-type-table th.subheader {
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.5rem 0.25rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .asset-type-table td.contribution-column {
+            font-size: 0.8rem;
+            padding: 0.5rem 0.25rem;
+            color: #64748b;
+        }
+
+        .asset-type-table td.return-column {
+            font-size: 0.8rem;
+            padding: 0.5rem 0.25rem;
+        }
+
+        .return-cell {
+            font-weight: 500;
+        }
+
+        .return-cell.positive {
+            color: #10b981;
+        }
+
+        .return-cell.negative {
+            color: #ef4444;
         }
     </style>
 </head>
@@ -1719,7 +1792,21 @@
         <!-- Breakdown Chart: Capital Composition -->
         <div class="comparison-section">
             <h3 class="comparison-title">График 2: Из чего состоит ваш капитал</h3>
-            <p class="comparison-description">Декомпозиция по компонентам (базовый сценарий)</p>
+            <p class="comparison-description">Декомпозиция по компонентам - переключайте сценарии</p>
+
+            <!-- Scenario Switcher for Breakdown -->
+            <div class="scenario-switcher">
+                <button class="scenario-btn-breakdown active" data-scenario="base">
+                    Базовый
+                </button>
+                <button class="scenario-btn-breakdown" data-scenario="pessimistic">
+                    Пессимистичный
+                </button>
+                <button class="scenario-btn-breakdown" data-scenario="optimistic">
+                    Оптимистичный
+                </button>
+            </div>
+
             <div class="card">
                 <div class="breakdown-legend">
                     <div class="legend-item">
@@ -1737,6 +1824,13 @@
                 </div>
                 <div class="chart-container" id="chartBreakdown">
                     <!-- Stacked bar chart will be rendered here -->
+                </div>
+            </div>
+
+            <div class="card mt-2">
+                <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;">Детализация по типам активов</h4>
+                <div class="table-container" id="assetTypeTableContainer">
+                    <!-- Table will be rendered here -->
                 </div>
             </div>
         </div>
@@ -1946,6 +2040,7 @@
         const chartBreakdown = document.getElementById('chartBreakdown');
         const chartCombined = document.getElementById('chartCombined');
         const scenarioBtns = document.querySelectorAll('.scenario-btn');
+        const scenarioBtnsBreakdown = document.querySelectorAll('.scenario-btn-breakdown');
 
         // Format currency
         function formatCurrency(value) {
@@ -2334,8 +2429,8 @@
         }
 
         // Step 7: Calculate projection breakdown (base, contributions, gains)
-        function calculateProjectionBreakdown() {
-            const scenario = 'base';
+        function calculateProjectionBreakdown(scenario) {
+            scenario = scenario || 'base';
             const horizon = appState.planning.horizon;
             const inflation = appState.planning.inflation / 100;
             const initialAssets = appState.assets.reduce((sum, a) => sum + a.amount, 0);
@@ -2363,18 +2458,16 @@
             let rawContributionsSum = 0;
 
             for (let year = 0; year <= horizon; year++) {
-                // Calculate investment gains from both buckets
-                const baseGains = baseAssetsValue - initialAssets;
-                const contributionsGains = contributionsValue - rawContributionsSum;
-                const totalGains = baseGains + contributionsGains;
-
                 const total = baseAssetsValue + contributionsValue;
+
+                // For stacked bar chart: show initial capital + raw contributions + all gains
+                const investmentGains = total - initialAssets - rawContributionsSum;
 
                 breakdownData.push({
                     year: year,
-                    baseAssets: Math.round(baseAssetsValue),
-                    totalContributions: Math.round(contributionsValue),
-                    investmentGains: Math.max(0, Math.round(totalGains)),
+                    baseAssets: initialAssets,  // Constant - initial assets without growth
+                    totalContributions: Math.round(rawContributionsSum),  // Cumulative contributions without growth
+                    investmentGains: Math.max(0, Math.round(investmentGains)),  // All growth from both buckets
                     total: Math.round(total)
                 });
 
@@ -2387,6 +2480,113 @@
                     // Apply different returns to each bucket
                     baseAssetsValue *= (1 + baseAssetsReturn);
                     contributionsValue *= (1 + contributionsReturn);
+                }
+            }
+
+            return breakdownData;
+        }
+
+        // Step 7: Calculate breakdown by asset type with compound interest
+        function calculateAssetTypeBreakdown(scenario) {
+            scenario = scenario || 'base';
+            const horizon = appState.planning.horizon;
+            const inflation = appState.planning.inflation / 100;
+            const monthlySavings = appState.profile.monthlyIncome - appState.profile.monthlyExpenses;
+            const returns = ASSET_RETURN_DELTAS;
+            const allocation = appState.regularInvestments.allocation;
+            const investmentPercent = appState.regularInvestments.investmentPercent / 100;
+            const monthlyInvestment = monthlySavings * investmentPercent;
+
+            // Group initial assets by type
+            const initialByType = { stocks: 0, bonds: 0, cash: 0, realty: 0 };
+            appState.assets.forEach(asset => {
+                initialByType[asset.type] = (initialByType[asset.type] || 0) + asset.amount;
+            });
+
+            // Initialize values for each type
+            const assetValues = {
+                stocks: initialByType.stocks,
+                bonds: initialByType.bonds,
+                cash: initialByType.cash,
+                realty: initialByType.realty
+            };
+
+            // Track previous values for growth calculation
+            let prevValues = {
+                stocks: initialByType.stocks,
+                bonds: initialByType.bonds,
+                cash: initialByType.cash,
+                realty: initialByType.realty
+            };
+
+            const breakdownData = [];
+
+            for (let year = 0; year <= horizon; year++) {
+                const total = assetValues.stocks + assetValues.bonds + assetValues.cash + assetValues.realty;
+                const prevTotal = prevValues.stocks + prevValues.bonds + prevValues.cash + prevValues.realty;
+
+                // Calculate contributions (what was added this year)
+                const annualContribution = monthlyInvestment * 12;
+                const stocksContributions = year === 0 ? 0 : annualContribution * (allocation.stocks / 100);
+                const bondsContributions = year === 0 ? 0 : annualContribution * (allocation.bonds / 100);
+                const cashContributions = year === 0 ? 0 : annualContribution * (allocation.cash / 100);
+                const realtyContributions = year === 0 ? 0 : annualContribution * (allocation.realty / 100);
+                const totalContributions = stocksContributions + bondsContributions + cashContributions + realtyContributions;
+
+                // Calculate total growth (difference from previous year)
+                const stocksGrowth = year === 0 ? 0 : assetValues.stocks - prevValues.stocks;
+                const bondsGrowth = year === 0 ? 0 : assetValues.bonds - prevValues.bonds;
+                const cashGrowth = year === 0 ? 0 : assetValues.cash - prevValues.cash;
+                const realtyGrowth = year === 0 ? 0 : assetValues.realty - prevValues.realty;
+                const totalGrowth = year === 0 ? 0 : total - prevTotal;
+
+                // Calculate investment return (growth minus contributions)
+                const stocksInvestmentReturn = stocksGrowth - stocksContributions;
+                const bondsInvestmentReturn = bondsGrowth - bondsContributions;
+                const cashInvestmentReturn = cashGrowth - cashContributions;
+                const realtyInvestmentReturn = realtyGrowth - realtyContributions;
+                const totalInvestmentReturn = totalGrowth - totalContributions;
+
+                breakdownData.push({
+                    year: year,
+                    stocks: Math.round(assetValues.stocks),
+                    bonds: Math.round(assetValues.bonds),
+                    cash: Math.round(assetValues.cash),
+                    realty: Math.round(assetValues.realty),
+                    total: Math.round(total),
+                    stocksContributions: Math.round(stocksContributions),
+                    bondsContributions: Math.round(bondsContributions),
+                    cashContributions: Math.round(cashContributions),
+                    realtyContributions: Math.round(realtyContributions),
+                    totalContributions: Math.round(totalContributions),
+                    stocksInvestmentReturn: Math.round(stocksInvestmentReturn),
+                    bondsInvestmentReturn: Math.round(bondsInvestmentReturn),
+                    cashInvestmentReturn: Math.round(cashInvestmentReturn),
+                    realtyInvestmentReturn: Math.round(realtyInvestmentReturn),
+                    totalInvestmentReturn: Math.round(totalInvestmentReturn)
+                });
+
+                if (year < horizon) {
+                    // Store current values as previous for next iteration
+                    prevValues = {
+                        stocks: assetValues.stocks,
+                        bonds: assetValues.bonds,
+                        cash: assetValues.cash,
+                        realty: assetValues.realty
+                    };
+
+                    // Add annual contributions distributed by allocation
+                    const annualContribution = monthlyInvestment * 12;
+                    assetValues.stocks += annualContribution * (allocation.stocks / 100);
+                    assetValues.bonds += annualContribution * (allocation.bonds / 100);
+                    assetValues.cash += annualContribution * (allocation.cash / 100);
+                    assetValues.realty += annualContribution * (allocation.realty / 100);
+
+                    // Apply compound interest - return on entire value (initial + contributions + past gains)
+                    assetValues.stocks *= (1 + inflation + returns.stocks[scenario] / 100);
+                    assetValues.bonds *= (1 + inflation + returns.bonds[scenario] / 100);
+                    assetValues.cash *= (1 + inflation + returns.cash[scenario] / 100);
+                    assetValues.realty *= (1 + inflation + returns.realty[scenario] / 100);
                 }
             }
 
@@ -2507,8 +2707,9 @@
         }
 
         // Step 7: Render breakdown chart (stacked bar chart)
-        function renderBreakdownChart() {
-            const data = calculateProjectionBreakdown();
+        function renderBreakdownChart(scenario) {
+            scenario = scenario || 'base';
+            const data = calculateProjectionBreakdown(scenario);
             const width = chartBreakdown.clientWidth || 300;
             const height = 400;
             const padding = 40;
@@ -2571,6 +2772,91 @@
             `;
 
             chartBreakdown.innerHTML = svg;
+        }
+
+        // Step 7: Render asset type breakdown table
+        function renderAssetTypeTable(scenario) {
+            scenario = scenario || 'base';
+            const data = calculateAssetTypeBreakdown(scenario);
+            const container = document.getElementById('assetTypeTableContainer');
+
+            if (!container) return;
+
+            // Helper function to format contribution value (regular additions)
+            const formatContribution = (contribution) => {
+                if (contribution === 0) return '-';
+                return formatCurrency(contribution);
+            };
+
+            // Helper function to format investment return value
+            const formatReturn = (returnValue) => {
+                if (returnValue === 0) return '-';
+                const formatted = formatCurrency(Math.abs(returnValue));
+                const sign = returnValue > 0 ? '+' : '-';
+                return `<span class="return-cell ${returnValue > 0 ? 'positive' : 'negative'}">${sign}${formatted}</span>`;
+            };
+
+            let html = `
+                <table class="asset-type-table">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left;" rowspan="2">Год</th>
+                            <th colspan="3">Фонды акций</th>
+                            <th colspan="3">Фонды облигаций</th>
+                            <th colspan="3">Депозиты</th>
+                            <th colspan="3">Недвижимость</th>
+                            <th colspan="3">Всего</th>
+                        </tr>
+                        <tr>
+                            <th class="subheader">Сумма</th>
+                            <th class="subheader">Пополнения</th>
+                            <th class="subheader">Доход</th>
+                            <th class="subheader">Сумма</th>
+                            <th class="subheader">Пополнения</th>
+                            <th class="subheader">Доход</th>
+                            <th class="subheader">Сумма</th>
+                            <th class="subheader">Пополнения</th>
+                            <th class="subheader">Доход</th>
+                            <th class="subheader">Сумма</th>
+                            <th class="subheader">Пополнения</th>
+                            <th class="subheader">Доход</th>
+                            <th class="subheader">Сумма</th>
+                            <th class="subheader">Пополнения</th>
+                            <th class="subheader">Доход</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            data.forEach(row => {
+                html += `
+                    <tr>
+                        <td style="text-align: left; font-weight: 600;">${row.year}</td>
+                        <td>${formatCurrency(row.stocks)}</td>
+                        <td class="contribution-column">${formatContribution(row.stocksContributions)}</td>
+                        <td class="return-column">${formatReturn(row.stocksInvestmentReturn)}</td>
+                        <td>${formatCurrency(row.bonds)}</td>
+                        <td class="contribution-column">${formatContribution(row.bondsContributions)}</td>
+                        <td class="return-column">${formatReturn(row.bondsInvestmentReturn)}</td>
+                        <td>${formatCurrency(row.cash)}</td>
+                        <td class="contribution-column">${formatContribution(row.cashContributions)}</td>
+                        <td class="return-column">${formatReturn(row.cashInvestmentReturn)}</td>
+                        <td>${formatCurrency(row.realty)}</td>
+                        <td class="contribution-column">${formatContribution(row.realtyContributions)}</td>
+                        <td class="return-column">${formatReturn(row.realtyInvestmentReturn)}</td>
+                        <td style="font-weight: 600;">${formatCurrency(row.total)}</td>
+                        <td class="contribution-column" style="font-weight: 600;">${formatContribution(row.totalContributions)}</td>
+                        <td class="return-column" style="font-weight: 600;">${formatReturn(row.totalInvestmentReturn)}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            container.innerHTML = html;
         }
 
         // Step 7: Render combined chart (both lines on one chart for selected scenario)
@@ -2752,8 +3038,9 @@
             // If step 7, render comparison charts and breakdown
             if (step === 7) {
                 renderComparisonCharts();
-                renderBreakdownChart();
+                renderBreakdownChart('base');
                 renderCombinedChart('base');
+                renderAssetTypeTable('base');
             }
 
             saveData();
@@ -3601,6 +3888,20 @@
                 // Render chart with selected scenario
                 const scenario = btn.dataset.scenario;
                 renderCombinedChart(scenario);
+            });
+        });
+
+        // Event listeners for breakdown chart scenario buttons
+        scenarioBtnsBreakdown.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all buttons
+                scenarioBtnsBreakdown.forEach(b => b.classList.remove('active'));
+                // Add active class to clicked button
+                btn.classList.add('active');
+                // Render breakdown chart and table with selected scenario
+                const scenario = btn.dataset.scenario;
+                renderBreakdownChart(scenario);
+                renderAssetTypeTable(scenario);
             });
         });
 
