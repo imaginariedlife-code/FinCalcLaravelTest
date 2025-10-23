@@ -7,12 +7,19 @@ Route::get('/', function () {
     return response()->file(public_path('index.html'));
 });
 
-// FinCalc application
-Route::get('/FinCalc', function () {
-    return response()->file(public_path('FinCalc/index.html'));
-});
+// Case-insensitive routing helper
+Route::get('/{app}', function ($app) {
+    $appLower = strtolower($app);
 
-// FinTest - Mobile financial calculator (Telegram Mini App)
-Route::get('/fintest', function () {
-    return response()->file(public_path('FinTest/index.html'));
-});
+    // FinCalc application (case-insensitive)
+    if ($appLower === 'fincalc') {
+        return response()->file(public_path('FinCalc/index.html'));
+    }
+
+    // FinTest - Mobile financial calculator (case-insensitive)
+    if ($appLower === 'fintest') {
+        return response()->file(public_path('FinTest/index.html'));
+    }
+
+    abort(404);
+})->where('app', '[a-zA-Z]+');
