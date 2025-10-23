@@ -517,6 +517,99 @@
             color: var(--tg-theme-hint-color);
         }
 
+        /* Risk Profile Info Block */
+        .risk-profile-info {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .risk-profile-info-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--tg-theme-text-color);
+            margin-bottom: 1rem;
+        }
+
+        .risk-profile-section {
+            margin-bottom: 1.25rem;
+        }
+
+        .risk-profile-section:last-of-type {
+            margin-bottom: 0;
+        }
+
+        .risk-profile-section-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--tg-theme-text-color);
+            margin-bottom: 0.75rem;
+        }
+
+        .asset-allocation-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        .allocation-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.85rem;
+        }
+
+        .allocation-details {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .allocation-name {
+            color: var(--tg-theme-text-color);
+            font-weight: 500;
+        }
+
+        .allocation-value {
+            color: var(--tg-theme-button-color);
+            font-weight: 600;
+        }
+
+        .returns-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .return-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .return-name {
+            color: var(--tg-theme-text-color);
+        }
+
+        .return-value {
+            font-weight: 600;
+            color: var(--tg-theme-button-color);
+        }
+
+        .disclaimer {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: #856404;
+            line-height: 1.4;
+        }
+
         /* Chart Legend */
         .chart-legend {
             display: flex;
@@ -1365,8 +1458,8 @@
                     <label class="form-label">Ежемесячный доход</label>
                     <div class="slider-container">
                         <div class="slider-value" id="incomeValue">100 000 ₽</div>
-                        <input type="range" class="slider" id="incomeSlider" min="0" max="500000" step="5000" value="100000">
-                        <div class="slider-hint">0 ₽ — 500 000 ₽</div>
+                        <input type="range" class="slider" id="incomeSlider" min="0" max="1500000" step="5000" value="100000">
+                        <div class="slider-hint">0 ₽ — 1 500 000 ₽</div>
                     </div>
                 </div>
 
@@ -1374,8 +1467,8 @@
                     <label class="form-label">Ежемесячные расходы</label>
                     <div class="slider-container">
                         <div class="slider-value" id="expensesValue">70 000 ₽</div>
-                        <input type="range" class="slider" id="expensesSlider" min="0" max="500000" step="5000" value="70000">
-                        <div class="slider-hint">0 ₽ — 500 000 ₽</div>
+                        <input type="range" class="slider" id="expensesSlider" min="0" max="1500000" step="5000" value="70000">
+                        <div class="slider-hint">0 ₽ — 1 500 000 ₽</div>
                     </div>
                 </div>
             </div>
@@ -1391,46 +1484,14 @@
             <h2 class="step-title">Ваши активы</h2>
             <p class="step-description">Укажите текущие накопления и инвестиции</p>
 
-            <div class="card">
-                <label class="form-label">Выберите категорию актива</label>
-                <div class="asset-categories">
-                    <div class="asset-category" data-type="stocks">
-                        <div class="asset-icon">📈</div>
-                        <div class="asset-category-name">Фонды акций</div>
-                    </div>
-                    <div class="asset-category" data-type="bonds">
-                        <div class="asset-icon">📄</div>
-                        <div class="asset-category-name">Фонды облигаций</div>
-                    </div>
-                    <div class="asset-category" data-type="cash">
-                        <div class="asset-icon">💰</div>
-                        <div class="asset-category-name">Депозиты</div>
-                    </div>
-                    <div class="asset-category" data-type="realty">
-                        <div class="asset-icon">🏠</div>
-                        <div class="asset-category-name">Недвижимость</div>
-                    </div>
-                </div>
-
-                <div class="form-group" style="margin-top: 1.5rem;">
-                    <label class="form-label">Сумма</label>
-                    <div class="input-group">
-                        <input type="text" class="form-input" id="assetAmount" placeholder="100 000" inputmode="numeric">
-                        <span class="input-suffix">₽</span>
-                    </div>
-                </div>
-
-                <button class="btn btn-add" id="btnAddAsset" disabled>
-                    + Добавить актив
-                </button>
-            </div>
-
             <div class="total-card hidden" id="totalCard">
                 <div class="total-label">Общая стоимость активов</div>
                 <div class="total-value" id="totalValue">0 ₽</div>
             </div>
 
             <div class="asset-list" id="assetList"></div>
+
+            <div id="addAssetButtonContainer"></div>
         </div>
 
         <!-- Step 3: Liabilities -->
@@ -1540,6 +1601,11 @@
                                 <div class="risk-profile-desc">Живу с волатильностью</div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Risk Profile Info Block -->
+                    <div id="riskProfileInfo" class="risk-profile-info hidden" style="margin-top: 1.5rem;">
+                        <!-- Content will be rendered here -->
                     </div>
                 </div>
 
@@ -1856,6 +1922,50 @@
         </div>
     </div>
 
+    <!-- Add Asset Modal -->
+    <div class="modal" id="addAssetModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Добавить актив</h3>
+                <button class="modal-close" id="addAssetModalClose">×</button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label">Выберите категорию актива</label>
+                <div class="asset-categories" id="modalAssetCategories">
+                    <div class="asset-category" data-type="stocks">
+                        <div class="asset-icon">📈</div>
+                        <div class="asset-category-name">Фонды акций</div>
+                    </div>
+                    <div class="asset-category" data-type="bonds">
+                        <div class="asset-icon">📄</div>
+                        <div class="asset-category-name">Фонды облигаций</div>
+                    </div>
+                    <div class="asset-category" data-type="cash">
+                        <div class="asset-icon">💰</div>
+                        <div class="asset-category-name">Депозиты</div>
+                    </div>
+                    <div class="asset-category" data-type="realty">
+                        <div class="asset-icon">🏠</div>
+                        <div class="asset-category-name">Недвижимость</div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 1.5rem;">
+                    <label class="form-label">Сумма</label>
+                    <div class="input-group">
+                        <input type="text" class="form-input" id="modalAssetAmount" placeholder="100 000" inputmode="numeric">
+                        <span class="input-suffix">₽</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+                    <button class="btn btn-secondary" id="modalCancelBtn" style="flex: 1;">Отмена</button>
+                    <button class="btn btn-add" id="modalAddAssetBtn" disabled style="flex: 2;">Добавить актив</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Telegram WebApp initialization
         let tg = window.Telegram?.WebApp;
@@ -1972,9 +2082,6 @@
         const savingsValue = document.getElementById('savingsValue');
 
         // Step 2 elements
-        const assetCategories = document.querySelectorAll('.asset-category');
-        const assetAmountInput = document.getElementById('assetAmount');
-        const btnAddAsset = document.getElementById('btnAddAsset');
         const assetList = document.getElementById('assetList');
         const totalCard = document.getElementById('totalCard');
         const totalValue = document.getElementById('totalValue');
@@ -3013,6 +3120,11 @@
             // Scroll to top
             window.scrollTo(0, 0);
 
+            // If step 4, render risk profile info
+            if (step === 4) {
+                renderRiskProfileInfo();
+            }
+
             // If step 5, render chart and update horizon text
             if (step === 5) {
                 let yearText = 'лет';
@@ -3047,10 +3159,33 @@
         }
 
         // Add asset
+        // Open add asset modal
+        function openAddAssetModal() {
+            const modal = document.getElementById('addAssetModal');
+            modal.classList.add('active');
+
+            // Reset form
+            const modalAssetAmount = document.getElementById('modalAssetAmount');
+            const modalAssetCategories = document.querySelectorAll('#modalAssetCategories .asset-category');
+            const modalAddAssetBtn = document.getElementById('modalAddAssetBtn');
+
+            modalAssetAmount.value = '';
+            appState.selectedAssetType = null;
+            modalAssetCategories.forEach(cat => cat.classList.remove('selected'));
+            modalAddAssetBtn.disabled = true;
+        }
+
+        // Close add asset modal
+        function closeAddAssetModal() {
+            const modal = document.getElementById('addAssetModal');
+            modal.classList.remove('active');
+        }
+
         function addAsset() {
             if (!appState.selectedAssetType) return;
 
-            const amount = parseFloat(parseNumberWithSpaces(assetAmountInput.value));
+            const modalAssetAmount = document.getElementById('modalAssetAmount');
+            const amount = parseFloat(parseNumberWithSpaces(modalAssetAmount.value));
             if (!amount || amount <= 0) return;
 
             const asset = {
@@ -3062,11 +3197,9 @@
 
             appState.assets.push(asset);
 
-            // Reset form
-            assetAmountInput.value = '';
+            // Close modal and reset state
+            closeAddAssetModal();
             appState.selectedAssetType = null;
-            assetCategories.forEach(cat => cat.classList.remove('selected'));
-            btnAddAsset.disabled = true;
 
             renderAssets();
             saveData();
@@ -3081,34 +3214,54 @@
 
         // Render assets
         function renderAssets() {
+            const addAssetButtonContainer = document.getElementById('addAssetButtonContainer');
+
             if (appState.assets.length === 0) {
-                assetList.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">💼</div>
-                        <div>Добавьте активы для расчета прогноза</div>
+                // Empty state: show just the add button (no empty-state message)
+                assetList.innerHTML = '';
+                totalCard.classList.add('hidden');
+
+                // Show big add button in empty state
+                addAssetButtonContainer.innerHTML = `
+                    <div style="padding: 3rem 0; text-align: center;">
+                        <button class="btn btn-primary" id="btnOpenAddAssetModal" style="padding: 1.25rem 2rem; font-size: 1.1rem; width: 100%; max-width: 300px;">
+                            + Добавить актив
+                        </button>
                     </div>
                 `;
-                totalCard.classList.add('hidden');
-                return;
+            } else {
+                // With assets: show list + total card + add button below
+                const total = appState.assets.reduce((sum, a) => sum + a.amount, 0);
+
+                assetList.innerHTML = appState.assets.map(asset => `
+                    <div class="asset-item">
+                        <div class="asset-item-info">
+                            <div class="asset-item-icon">${asset.icon}</div>
+                            <div class="asset-item-details">
+                                <div class="asset-item-name">${asset.name}</div>
+                                <div class="asset-item-category">${formatCurrency(asset.amount)}</div>
+                            </div>
+                        </div>
+                        <button class="btn-delete" onclick="deleteAsset(${asset.id})">×</button>
+                    </div>
+                `).join('');
+
+                totalValue.textContent = formatCurrency(total);
+                totalCard.classList.remove('hidden');
+
+                // Show add button below the list
+                addAssetButtonContainer.innerHTML = `
+                    <button class="btn btn-primary" id="btnOpenAddAssetModal" style="margin-top: 1rem; width: 100%;">
+                        + Добавить актив
+                    </button>
+                `;
             }
 
-            const total = appState.assets.reduce((sum, a) => sum + a.amount, 0);
-
-            assetList.innerHTML = appState.assets.map(asset => `
-                <div class="asset-item">
-                    <div class="asset-item-info">
-                        <div class="asset-item-icon">${asset.icon}</div>
-                        <div class="asset-item-details">
-                            <div class="asset-item-name">${asset.name}</div>
-                            <div class="asset-item-category">${formatCurrency(asset.amount)}</div>
-                        </div>
-                    </div>
-                    <button class="btn-delete" onclick="deleteAsset(${asset.id})">×</button>
-                </div>
-            `).join('');
-
-            totalValue.textContent = formatCurrency(total);
-            totalCard.classList.remove('hidden');
+            // Re-attach event listener for the add button
+            const btnOpenModal = document.getElementById('btnOpenAddAssetModal');
+            if (btnOpenModal) {
+                btnOpenModal.addEventListener('click', openAddAssetModal);
+            }
         }
 
         // Add liability
@@ -3183,6 +3336,95 @@
 
             totalLiabilitiesValue.textContent = formatCurrency(total);
             totalLiabilitiesCard.classList.remove('hidden');
+        }
+
+        // Render risk profile info (Step 4)
+        function renderRiskProfileInfo() {
+            const riskProfile = appState.planning.riskProfile;
+            const horizon = appState.planning.horizon;
+            const inflation = appState.planning.inflation || 11;
+
+            const riskProfileInfoContainer = document.getElementById('riskProfileInfo');
+
+            if (!riskProfile) {
+                riskProfileInfoContainer.classList.add('hidden');
+                return;
+            }
+
+            // Determine horizon range
+            let horizonRange;
+            if (horizon >= 3 && horizon <= 4) {
+                horizonRange = '3-4';
+            } else if (horizon >= 5 && horizon <= 9) {
+                horizonRange = '5-9';
+            } else {
+                horizonRange = '10+';
+            }
+
+            // Get allocation
+            const allocation = RECOMMENDED_ALLOCATIONS[horizonRange][riskProfile];
+
+            // Build allocation HTML
+            let allocationHTML = '<div class="asset-allocation-grid">';
+
+            const assetTypes = ['stocks', 'bonds', 'cash', 'realty'];
+            assetTypes.forEach(type => {
+                if (allocation[type] > 0) {
+                    allocationHTML += `
+                        <div class="allocation-item">
+                            <div class="allocation-details">
+                                <div class="allocation-name">${assetInfo[type].name}</div>
+                                <div class="allocation-value">${allocation[type]}%</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            allocationHTML += '</div>';
+
+            // Build returns HTML (base scenario)
+            let returnsHTML = '<div class="returns-grid">';
+
+            assetTypes.forEach(type => {
+                if (allocation[type] > 0) {
+                    const delta = ASSET_RETURN_DELTAS[type].base;
+                    const totalReturn = inflation + delta;
+                    const sign = delta >= 0 ? '+' : '';
+
+                    returnsHTML += `
+                        <div class="return-item">
+                            <span class="return-name">${assetInfo[type].name}</span>
+                            <span class="return-value">${inflation}% ${sign}${delta}% = ${totalReturn.toFixed(1)}%</span>
+                        </div>
+                    `;
+                }
+            });
+
+            returnsHTML += '</div>';
+
+            // Render full block
+            riskProfileInfoContainer.innerHTML = `
+                <div class="risk-profile-info-title">
+                    ${riskProfileInfo[riskProfile].icon} ${riskProfileInfo[riskProfile].name} профиль
+                </div>
+
+                <div class="risk-profile-section">
+                    <div class="risk-profile-section-title">Распределение активов</div>
+                    ${allocationHTML}
+                </div>
+
+                <div class="risk-profile-section">
+                    <div class="risk-profile-section-title">Ожидаемая доходность (базовый сценарий)</div>
+                    ${returnsHTML}
+                </div>
+
+                <div class="disclaimer">
+                    💡 <strong>Обратите внимание:</strong> точное соотношение активов можно будет изменить на следующем шаге (Шаг 6).
+                </div>
+            `;
+
+            riskProfileInfoContainer.classList.remove('hidden');
         }
 
         // Track which field was edited last
@@ -3352,26 +3594,48 @@
             saveData();
         });
 
-        // Event Listeners - Step 2
-        assetCategories.forEach(category => {
+        // Event Listeners - Step 2 (Modal)
+        const modalAssetCategories = document.querySelectorAll('#modalAssetCategories .asset-category');
+        const modalAssetAmountInput = document.getElementById('modalAssetAmount');
+        const modalAddAssetBtn = document.getElementById('modalAddAssetBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const addAssetModalClose = document.getElementById('addAssetModalClose');
+        const addAssetModal = document.getElementById('addAssetModal');
+
+        modalAssetCategories.forEach(category => {
             category.addEventListener('click', () => {
-                assetCategories.forEach(c => c.classList.remove('selected'));
+                modalAssetCategories.forEach(c => c.classList.remove('selected'));
                 category.classList.add('selected');
                 appState.selectedAssetType = category.dataset.type;
 
-                const amount = parseFloat(assetAmountInput.value);
-                btnAddAsset.disabled = !amount || amount <= 0;
+                const amount = parseFloat(parseNumberWithSpaces(modalAssetAmountInput.value));
+                modalAddAssetBtn.disabled = !amount || amount <= 0;
             });
         });
 
-        assetAmountInput.addEventListener('input', () => {
-            formatInputOnType(assetAmountInput, false);
-            const amount = parseFloat(parseNumberWithSpaces(assetAmountInput.value));
-            btnAddAsset.disabled = !appState.selectedAssetType || !amount || amount <= 0;
+        modalAssetAmountInput.addEventListener('input', () => {
+            formatInputOnType(modalAssetAmountInput, false);
+            const amount = parseFloat(parseNumberWithSpaces(modalAssetAmountInput.value));
+            modalAddAssetBtn.disabled = !appState.selectedAssetType || !amount || amount <= 0;
         });
 
+        modalAddAssetBtn.addEventListener('click', addAsset);
+        modalCancelBtn.addEventListener('click', closeAddAssetModal);
+        addAssetModalClose.addEventListener('click', closeAddAssetModal);
 
-        btnAddAsset.addEventListener('click', addAsset);
+        // Close modal on backdrop click
+        addAssetModal.addEventListener('click', (e) => {
+            if (e.target === addAssetModal) {
+                closeAddAssetModal();
+            }
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && addAssetModal.classList.contains('active')) {
+                closeAddAssetModal();
+            }
+        });
 
         // Event Listeners - Step 3
         liabilityNameInput.addEventListener('input', validateLiabilityForm);
@@ -3411,6 +3675,7 @@
         horizonSlider.addEventListener('input', () => {
             updateHorizon();
             updateSliderBackground(horizonSlider);
+            renderRiskProfileInfo(); // Update risk profile info when horizon changes
             saveData();
         });
 
@@ -3423,6 +3688,10 @@
                 if (appState.currentStep === 4) {
                     btnNext.disabled = !validateStep4();
                 }
+
+                // Render risk profile info
+                renderRiskProfileInfo();
+
                 saveData();
             });
         });
@@ -3435,6 +3704,10 @@
             if (appState.currentStep === 4) {
                 btnNext.disabled = !validateStep4();
             }
+
+            // Update risk profile info when inflation changes
+            renderRiskProfileInfo();
+
             saveData();
         });
 
@@ -3544,18 +3817,8 @@
                     goToStep(7);
                 }
             } else if (appState.currentStep === 7) {
-                // Reset and start over
-                if (tg) {
-                    tg.showConfirm('Начать новый расчет?', (confirmed) => {
-                        if (confirmed) {
-                            location.reload();
-                        }
-                    });
-                } else {
-                    if (confirm('Начать новый расчет?')) {
-                        location.reload();
-                    }
-                }
+                // Return to step 1 (data is preserved)
+                goToStep(1);
             }
         });
 
@@ -3626,82 +3889,6 @@
             stocksRecommended.textContent = `рекомендовано ${recommended.stocks}%`;
             bondsRecommended.textContent = `рекомендовано ${recommended.bonds}%`;
             cashRecommended.textContent = `рекомендовано ${recommended.cash}%`;
-        }
-
-        // Step 6: Auto-balance sliders when one changes
-        function autoBalanceSliders(changedAsset, newValue) {
-            const recommended = getRecommendedAllocation();
-            const oldValue = appState.regularInvestments.allocation[changedAsset];
-            const delta = newValue - oldValue;
-
-            // Update the changed asset
-            appState.regularInvestments.allocation[changedAsset] = newValue;
-
-            // If delta is 0, nothing to balance
-            if (delta === 0) {
-                checkAllocationBounds();
-                updateAllocationTotal();
-                return;
-            }
-
-            // Get other active assets (not realty, not the changed one)
-            const otherAssets = ['stocks', 'bonds', 'cash'].filter(a => a !== changedAsset);
-
-            // Calculate total of other assets
-            let otherTotal = 0;
-            otherAssets.forEach(asset => {
-                otherTotal += appState.regularInvestments.allocation[asset];
-            });
-
-            // If otherTotal is 0, distribute evenly
-            if (otherTotal === 0) {
-                const perAsset = Math.round(-delta / otherAssets.length);
-                otherAssets.forEach((asset, index) => {
-                    // Last asset gets the remainder to ensure sum = 100
-                    const adjustment = (index === otherAssets.length - 1)
-                        ? (100 - newValue - perAsset * (otherAssets.length - 1))
-                        : perAsset;
-                    appState.regularInvestments.allocation[asset] = Math.max(0, Math.min(100, adjustment));
-                });
-            } else {
-                // Distribute delta proportionally
-                let totalAdjusted = newValue;
-                otherAssets.forEach((asset, index) => {
-                    if (index === otherAssets.length - 1) {
-                        // Last asset gets the remainder to ensure sum = 100
-                        appState.regularInvestments.allocation[asset] = 100 - totalAdjusted;
-                    } else {
-                        const proportion = appState.regularInvestments.allocation[asset] / otherTotal;
-                        const change = -delta * proportion;
-                        let newVal = Math.round(appState.regularInvestments.allocation[asset] + change);
-
-                        // Ensure within bounds
-                        const min = Math.max(0, recommended[asset] - 20);
-                        const max = Math.min(100, recommended[asset] + 20);
-                        newVal = Math.max(min, Math.min(max, newVal));
-
-                        appState.regularInvestments.allocation[asset] = newVal;
-                        totalAdjusted += newVal;
-                    }
-                });
-            }
-
-            // Update sliders and values
-            stocksAllocation.value = appState.regularInvestments.allocation.stocks;
-            bondsAllocation.value = appState.regularInvestments.allocation.bonds;
-            cashAllocation.value = appState.regularInvestments.allocation.cash;
-
-            stocksAllocationValue.textContent = appState.regularInvestments.allocation.stocks + '%';
-            bondsAllocationValue.textContent = appState.regularInvestments.allocation.bonds + '%';
-            cashAllocationValue.textContent = appState.regularInvestments.allocation.cash + '%';
-
-            updateSliderBackground(stocksAllocation);
-            updateSliderBackground(bondsAllocation);
-            updateSliderBackground(cashAllocation);
-
-            // Check bounds and update total
-            checkAllocationBounds();
-            updateAllocationTotal();
         }
 
         // Step 6: Check if allocation is within ±20% bounds
@@ -3856,26 +4043,32 @@
             updateInvestmentAmounts();
         });
 
-        // Step 6: Allocation sliders (with auto-balance)
+        // Step 6: Allocation sliders (manual control)
         stocksAllocation.addEventListener('input', () => {
             const newValue = parseInt(stocksAllocation.value);
+            appState.regularInvestments.allocation.stocks = newValue;
             stocksAllocationValue.textContent = newValue + '%';
             updateSliderBackground(stocksAllocation);
-            autoBalanceSliders('stocks', newValue);
+            checkAllocationBounds();
+            updateAllocationTotal();
         });
 
         bondsAllocation.addEventListener('input', () => {
             const newValue = parseInt(bondsAllocation.value);
+            appState.regularInvestments.allocation.bonds = newValue;
             bondsAllocationValue.textContent = newValue + '%';
             updateSliderBackground(bondsAllocation);
-            autoBalanceSliders('bonds', newValue);
+            checkAllocationBounds();
+            updateAllocationTotal();
         });
 
         cashAllocation.addEventListener('input', () => {
             const newValue = parseInt(cashAllocation.value);
+            appState.regularInvestments.allocation.cash = newValue;
             cashAllocationValue.textContent = newValue + '%';
             updateSliderBackground(cashAllocation);
-            autoBalanceSliders('cash', newValue);
+            checkAllocationBounds();
+            updateAllocationTotal();
         });
 
         // Step 7: Scenario switcher buttons
@@ -3922,7 +4115,6 @@
         updateAllocationTotal();
 
         // Initialize button states
-        btnAddAsset.disabled = true;
         btnAddLiability.disabled = true;
 
         // Set default inflation if empty
