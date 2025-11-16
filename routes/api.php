@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\PortfolioController;
 use App\Http\Controllers\Api\AssetController;
 use App\Http\Controllers\Api\LiabilityController;
+use App\Http\Controllers\Api\InvestmentCalculatorController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -22,3 +23,10 @@ Route::post('portfolios/{portfolio}/liabilities', [LiabilityController::class, '
 // Individual asset and liability routes
 Route::apiResource('assets', AssetController::class)->except(['index', 'store']);
 Route::apiResource('liabilities', LiabilityController::class)->except(['index', 'store']);
+
+// Investment Calculator routes
+Route::prefix('investment')->group(function () {
+    Route::get('instruments', [InvestmentCalculatorController::class, 'instruments']);
+    Route::post('calculate', [InvestmentCalculatorController::class, 'calculate']);
+    Route::post('compare', [InvestmentCalculatorController::class, 'compare']);
+});
