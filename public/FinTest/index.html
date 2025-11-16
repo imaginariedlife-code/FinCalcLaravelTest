@@ -4106,6 +4106,10 @@
         updateSavings();
         updateHorizon();
 
+        // Render assets and liabilities (needed for fresh start without localStorage)
+        renderAssets();
+        renderLiabilities();
+
         // Initialize Step 6 sliders
         updateSliderBackground(investmentPercentSlider);
         updateSliderBackground(stocksAllocation);
