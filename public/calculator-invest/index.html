@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator-Invest — Калькулятор инвестиционных стратегий</title>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --primary: #3B82F6;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-900: #111827;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-900);
+            line-height: 1.6;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 2rem 0;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--gray-600);
+            font-size: 1rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 0.5rem;
+        }
+
+        input, select {
+            padding: 0.75rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            padding: 0.875rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: #2563EB;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            border: 4px solid var(--gray-200);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .strategy-card {
+            background: linear-gradient(135deg, var(--gray-50) 0%, white 100%);
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 1.25rem;
+            transition: all 0.2s;
+        }
+
+        .strategy-card.winner {
+            background: linear-gradient(135deg, #D1FAE5 0%, white 100%);
+            border-color: var(--success);
+        }
+
+        .strategy-card.loser {
+            background: linear-gradient(135deg, #FEE2E2 0%, white 100%);
+            border-color: var(--danger);
+        }
+
+        .strategy-card h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 0.75rem;
+        }
+
+        .strategy-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .strategy-value.positive {
+            color: var(--success);
+        }
+
+        .strategy-value.negative {
+            color: var(--danger);
+        }
+
+        .strategy-meta {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        th {
+            background: var(--gray-50);
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--gray-700);
+        }
+
+        td {
+            font-size: 0.875rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .badge-danger {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-error {
+            background: #FEE2E2;
+            color: #991B1B;
+            border: 1px solid #FCA5A5;
+        }
+
+        .alert-info {
+            background: #DBEAFE;
+            color: #1E40AF;
+            border: 1px solid #93C5FD;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" x-data="calculatorApp()">
+        <!-- Header -->
+        <div class="header">
+            <h1>📊 Calculator-Invest</h1>
+            <p>Сравнение инвестиционных стратегий на реальных данных МосБиржи</p>
+        </div>
+
+        <!-- Parameters Form -->
+        <div class="card">
+            <h2 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Параметры расчета</h2>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="ticker">Инструмент</label>
+                    <select id="ticker" x-model="params.ticker">
+                        <option value="">Загрузка...</option>
+                        <template x-for="instrument in instruments" :key="instrument.ticker">
+                            <option :value="instrument.ticker" x-text="`${instrument.ticker} — ${instrument.name}`"></option>
+                        </template>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="amount">Сумма инвестиций (₽)</label>
+                    <input type="number" id="amount" x-model="params.amount" placeholder="10000" min="1000" step="1000">
+                </div>
+
+                <div class="form-group">
+                    <label for="frequency">Периодичность</label>
+                    <select id="frequency" x-model="params.frequency">
+                        <option value="monthly">Ежемесячно</option>
+                        <option value="quarterly">Ежеквартально</option>
+                        <option value="yearly">Ежегодно</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="start_date">Дата начала</label>
+                    <input type="date" id="start_date" x-model="params.start_date">
+                </div>
+
+                <div class="form-group">
+                    <label for="end_date">Дата окончания</label>
+                    <input type="date" id="end_date" x-model="params.end_date">
+                </div>
+            </div>
+
+            <button
+                class="btn"
+                @click="calculate()"
+                :disabled="loading || !params.ticker"
+                x-text="loading ? 'Расчет...' : 'Рассчитать стратегии'">
+            </button>
+        </div>
+
+        <!-- Error Message -->
+        <div x-show="error" class="alert alert-error" x-text="error"></div>
+
+        <!-- Loading State -->
+        <div x-show="loading" class="card loading">
+            <div class="spinner"></div>
+            <p>Рассчитываем стратегии...</p>
+        </div>
+
+        <!-- Results -->
+        <template x-if="results && !loading">
+            <div>
+                <!-- Summary Cards -->
+                <div class="card">
+                    <h2 style="margin-bottom: 1rem; font-size: 1.25rem;">Результаты</h2>
+                    <p class="alert-info" style="font-size: 0.875rem; padding: 0.75rem; margin-bottom: 1.5rem;">
+                        <strong>Условия:</strong>
+                        <span x-text="`Инвестиции ${formatNumber(results.metadata.amount_per_period)} ₽ ${getFrequencyText(results.metadata.frequency)}`"></span>
+                        за <span x-text="results.metadata.total_periods"></span> периодов
+                    </p>
+
+                    <div class="results-grid">
+                        <template x-for="(strategy, key) in strategies" :key="key">
+                            <div
+                                class="strategy-card"
+                                :class="{
+                                    'winner': results[key].percentage_return === getBestReturn(),
+                                    'loser': results[key].percentage_return === getWorstReturn()
+                                }">
+                                <h3 x-text="strategy.name + (results[key].percentage_return === getBestReturn() ? ' 🏆' : '')"></h3>
+                                <div
+                                    class="strategy-value"
+                                    :class="results[key].absolute_return >= 0 ? 'positive' : 'negative'"
+                                    x-text="formatCurrency(results[key].final_value)">
+                                </div>
+                                <div class="strategy-meta">
+                                    <div x-text="formatProfit(results[key].absolute_return, results[key].percentage_return)"></div>
+                                    <div>CAGR: <strong x-text="results[key].cagr + '%'"></strong></div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Chart -->
+                <div class="card">
+                    <h2 style="margin-bottom: 1.5rem; font-size: 1.25rem;">График сравнения</h2>
+                    <div class="chart-container">
+                        <canvas id="strategiesChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="card">
+                    <h2 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Детальная таблица</h2>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Стратегия</th>
+                                    <th>Вложено</th>
+                                    <th>Итоговая стоимость</th>
+                                    <th>Прибыль</th>
+                                    <th>Доходность</th>
+                                    <th>CAGR</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="(strategy, key) in strategies" :key="key">
+                                    <tr>
+                                        <td x-text="strategy.name"></td>
+                                        <td x-text="formatCurrency(results[key].total_invested)"></td>
+                                        <td x-text="formatCurrency(results[key].final_value)"></td>
+                                        <td>
+                                            <span
+                                                :class="results[key].absolute_return >= 0 ? 'badge-success' : 'badge-danger'"
+                                                class="badge"
+                                                x-text="formatCurrency(results[key].absolute_return)">
+                                            </span>
+                                        </td>
+                                        <td x-text="results[key].percentage_return + '%'"></td>
+                                        <td x-text="results[key].cagr + '%'"></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <script>
+        function calculatorApp() {
+            return {
+                instruments: [],
+                params: {
+                    ticker: '',
+                    amount: 10000,
+                    frequency: 'monthly',
+                    start_date: '2020-01-01',
+                    end_date: '2024-12-31'
+                },
+                results: null,
+                loading: false,
+                error: null,
+                chart: null,
+                strategies: {
+                    perfect_timing: { name: 'Идеальный тайминг', color: '#10B981' },
+                    first_day: { name: 'Первый день периода', color: '#3B82F6' },
+                    dca: { name: 'DCA (усреднение)', color: '#F59E0B' },
+                    worst_timing: { name: 'Худший тайминг', color: '#EF4444' },
+                    deposit: { name: 'Банковский депозит', color: '#6B7280' }
+                },
+
+                async init() {
+                    await this.loadInstruments();
+                },
+
+                async loadInstruments() {
+                    try {
+                        const response = await fetch('/api/investment/instruments');
+                        const data = await response.json();
+                        this.instruments = data.instruments;
+
+                        // Select IMOEX by default if available
+                        const imoex = this.instruments.find(i => i.ticker === 'IMOEX');
+                        if (imoex) {
+                            this.params.ticker = 'IMOEX';
+                        } else if (this.instruments.length > 0) {
+                            this.params.ticker = this.instruments[0].ticker;
+                        }
+                    } catch (e) {
+                        this.error = 'Ошибка загрузки инструментов: ' + e.message;
+                    }
+                },
+
+                async calculate() {
+                    this.loading = true;
+                    this.error = null;
+                    this.results = null;
+
+                    try {
+                        const response = await fetch('/api/investment/calculate', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify(this.params)
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(data.message || 'Ошибка расчета');
+                        }
+
+                        this.results = data;
+
+                        // Wait for DOM update and Chart.js to be ready
+                        this.$nextTick(() => {
+                            setTimeout(() => {
+                                this.renderChart();
+                            }, 100);
+                        });
+
+                    } catch (e) {
+                        this.error = e.message;
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                renderChart() {
+                    const ctx = document.getElementById('strategiesChart');
+                    if (!ctx) return;
+
+                    // Check if Chart.js is loaded
+                    if (typeof Chart === 'undefined') return;
+
+                    // Destroy previous chart
+                    if (this.chart) {
+                        this.chart.destroy();
+                    }
+
+                    // Prepare data: show progression over time
+                    const periods = this.results.metadata.total_periods;
+                    const labels = Array.from({length: periods + 1}, (_, i) => i);
+
+                    const datasets = Object.keys(this.strategies).map(key => {
+                        const strategy = this.strategies[key];
+                        const purchases = this.results[key].purchases || this.results[key].deposits || [];
+
+                        // Calculate cumulative values
+                        const data = [0]; // Start at 0
+
+                        purchases.forEach((purchase) => {
+                            // Use current_value for investment strategies, balance for deposit
+                            const value = purchase.current_value || purchase.balance || 0;
+                            data.push(value);
+                        });
+
+                        return {
+                            label: strategy.name,
+                            data: data,
+                            borderColor: strategy.color,
+                            backgroundColor: strategy.color + '20',
+                            tension: 0.4,
+                            fill: false
+                        };
+                    });
+
+                    this.chart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: datasets
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: (context) => {
+                                            return context.dataset.label + ': ' +
+                                                   this.formatCurrency(context.parsed.y);
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: (value) => this.formatNumber(value) + ' ₽'
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Период'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                },
+
+                getBestReturn() {
+                    if (!this.results) return null;
+                    return Math.max(...Object.keys(this.strategies).map(k => this.results[k].percentage_return));
+                },
+
+                getWorstReturn() {
+                    if (!this.results) return null;
+                    return Math.min(...Object.keys(this.strategies).map(k => this.results[k].percentage_return));
+                },
+
+                formatNumber(num) {
+                    return new Intl.NumberFormat('ru-RU').format(Math.round(num));
+                },
+
+                formatCurrency(num) {
+                    return new Intl.NumberFormat('ru-RU').format(Math.round(num)) + ' ₽';
+                },
+
+                formatProfit(absolute, percentage) {
+                    const sign = absolute >= 0 ? '+' : '';
+                    return `${sign}${this.formatCurrency(absolute)} (${sign}${percentage}%)`;
+                },
+
+                getFrequencyText(freq) {
+                    const map = {
+                        'monthly': 'каждый месяц',
+                        'quarterly': 'каждый квартал',
+                        'yearly': 'каждый год'
+                    };
+                    return map[freq] || freq;
+                }
+            }
+        }
+    </script>
+</body>
+</html>

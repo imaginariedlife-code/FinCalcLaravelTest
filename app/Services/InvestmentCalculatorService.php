@@ -65,6 +65,7 @@ class InvestmentCalculatorService
         $totalShares = 0;
         $totalInvested = 0;
         $purchases = [];
+        $finalPrice = $periods[count($periods) - 1]->last()->close;
 
         foreach ($periods as $period) {
             $lowestPrice = $period->min('low');
@@ -78,10 +79,10 @@ class InvestmentCalculatorService
                 'price' => $lowestPrice,
                 'shares' => round($sharesBought, 4),
                 'invested' => $amount,
+                'current_value' => round($totalShares * $finalPrice, 2),
             ];
         }
 
-        $finalPrice = $periods[count($periods) - 1]->last()->close;
         $finalValue = $totalShares * $finalPrice;
 
         return $this->formatResult($totalInvested, $finalValue, $totalShares, $purchases);
@@ -95,6 +96,7 @@ class InvestmentCalculatorService
         $totalShares = 0;
         $totalInvested = 0;
         $purchases = [];
+        $finalPrice = $periods[count($periods) - 1]->last()->close;
 
         foreach ($periods as $period) {
             $firstDay = $period->first();
@@ -109,10 +111,10 @@ class InvestmentCalculatorService
                 'price' => $price,
                 'shares' => round($sharesBought, 4),
                 'invested' => $amount,
+                'current_value' => round($totalShares * $finalPrice, 2),
             ];
         }
 
-        $finalPrice = $periods[count($periods) - 1]->last()->close;
         $finalValue = $totalShares * $finalPrice;
 
         return $this->formatResult($totalInvested, $finalValue, $totalShares, $purchases);
@@ -126,6 +128,7 @@ class InvestmentCalculatorService
         $totalShares = 0;
         $totalInvested = 0;
         $purchases = [];
+        $finalPrice = $periods[count($periods) - 1]->last()->close;
 
         foreach ($periods as $period) {
             // Use average price for the period (simulating regular purchases)
@@ -140,11 +143,11 @@ class InvestmentCalculatorService
                 'price' => round($avgPrice, 2),
                 'shares' => round($sharesBought, 4),
                 'invested' => $amount,
+                'current_value' => round($totalShares * $finalPrice, 2),
                 'note' => 'Average price for period',
             ];
         }
 
-        $finalPrice = $periods[count($periods) - 1]->last()->close;
         $finalValue = $totalShares * $finalPrice;
 
         return $this->formatResult($totalInvested, $finalValue, $totalShares, $purchases);
@@ -158,6 +161,7 @@ class InvestmentCalculatorService
         $totalShares = 0;
         $totalInvested = 0;
         $purchases = [];
+        $finalPrice = $periods[count($periods) - 1]->last()->close;
 
         foreach ($periods as $period) {
             $highestPrice = $period->max('high');
@@ -171,17 +175,17 @@ class InvestmentCalculatorService
                 'price' => $highestPrice,
                 'shares' => round($sharesBought, 4),
                 'invested' => $amount,
+                'current_value' => round($totalShares * $finalPrice, 2),
             ];
         }
 
-        $finalPrice = $periods[count($periods) - 1]->last()->close;
         $finalValue = $totalShares * $finalPrice;
 
         return $this->formatResult($totalInvested, $finalValue, $totalShares, $purchases);
     }
 
     /**
-     * Strategy 5: Bank Deposit - compound interest calculation
+     * Strategy 5: Bank Deposit - compound interest calculation with ANNUAL capitalization
      */
     private function calculateDeposit(
         float $amount,
@@ -192,24 +196,35 @@ class InvestmentCalculatorService
         $totalInvested = $amount * $periods;
         $balance = 0;
         $deposits = [];
+        $accruedInterest = 0; // Interest accumulated during the year
 
         $start = Carbon::parse($startDate);
         $end = Carbon::parse($endDate);
 
-        // Calculate by year, applying respective deposit rates
+        // Calculate with annual capitalization (realistic for bank deposits)
         for ($i = 0; $i < $periods; $i++) {
             $currentDate = $start->copy()->addMonths($i);
             $year = $currentDate->year;
+            $isDecember = $currentDate->month === 12;
+            $isLastPeriod = $i === $periods - 1;
 
             // Get deposit rate for this year
             $rate = DepositRate::getRateForYear($year) ?? 7.0; // Default 7% if not found
             $monthlyRate = $rate / 100 / 12;
 
-            // Add new deposit
+            // Accrue interest on OLD balance FIRST (before adding new deposit)
+            // This is realistic: money deposited today starts earning interest next month
+            $monthlyInterest = $balance * $monthlyRate;
+            $accruedInterest += $monthlyInterest;
+
+            // THEN add new deposit
             $balance += $amount;
 
-            // Apply monthly compound interest for one month
-            $balance *= (1 + $monthlyRate);
+            // Capitalize interest at year-end (December) or at the end of period
+            if ($isDecember || $isLastPeriod) {
+                $balance += $accruedInterest;
+                $accruedInterest = 0; // Reset for next year
+            }
 
             $deposits[] = [
                 'date' => $currentDate->format('Y-m-d'),

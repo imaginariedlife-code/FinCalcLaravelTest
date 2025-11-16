@@ -21,5 +21,10 @@ Route::get('/{app}', function ($app) {
         return response()->file(public_path('FinTest/index.html'));
     }
 
+    // Calculator-Invest - Investment strategies calculator (case-insensitive)
+    if ($appLower === 'calculator-invest' || $appLower === 'invest') {
+        return response()->file(public_path('calculator-invest/index.html'));
+    }
+
     abort(404);
 })->where('app', '[a-zA-Z]+');
