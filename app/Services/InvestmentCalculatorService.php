@@ -6,9 +6,14 @@ use App\Models\HistoricalPrice;
 use App\Models\DepositRate;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 
 class InvestmentCalculatorService
 {
+    public function __construct(
+        private MoexDataService $moexService
+    ) {}
+
     /**
      * Calculate all 5 investment strategies
      *
@@ -26,14 +31,34 @@ class InvestmentCalculatorService
         string $startDate,
         string $endDate
     ): array {
-        // Fetch historical prices
+        // Check if we have data for this ticker and date range
         $prices = HistoricalPrice::forTicker($ticker)
             ->betweenDates($startDate, $endDate)
             ->orderByDate('asc')
             ->get();
 
-        if ($prices->isEmpty()) {
-            throw new \Exception("No historical data found for {$ticker} in the specified date range");
+        // If no data or insufficient data, try to fetch from MOEX API
+        if ($prices->isEmpty() || $this->needsDataUpdate($prices, $startDate, $endDate)) {
+            Log::info("Fetching missing data for {$ticker} from {$startDate} to {$endDate}");
+
+            try {
+                $this->moexService->syncHistoricalData($ticker, $startDate, $endDate);
+
+                // Refetch after sync
+                $prices = HistoricalPrice::forTicker($ticker)
+                    ->betweenDates($startDate, $endDate)
+                    ->orderByDate('asc')
+                    ->get();
+
+                if ($prices->isEmpty()) {
+                    throw new \Exception("Не удалось загрузить данные для {$ticker} за указанный период. Возможно, инструмент не торговался в эти даты или API недоступен.");
+                }
+
+                Log::info("Successfully fetched {$prices->count()} records for {$ticker}");
+            } catch (\Exception $e) {
+                Log::error("Failed to fetch data for {$ticker}: " . $e->getMessage());
+                throw new \Exception("Ошибка загрузки данных для {$ticker}: " . $e->getMessage());
+            }
         }
 
         // Group prices by investment periods
@@ -296,6 +321,55 @@ class InvestmentCalculatorService
         }
 
         return $periods;
+    }
+
+    /**
+     * Check if we need to update data (missing dates or gaps)
+     */
+    private function needsDataUpdate(Collection $prices, string $startDate, string $endDate): bool
+    {
+        if ($prices->isEmpty()) {
+            return true;
+        }
+
+        $requestedStart = Carbon::parse($startDate);
+        $requestedEnd = Carbon::parse($endDate);
+
+        $actualStart = $prices->first()->trade_date;
+        $actualEnd = $prices->last()->trade_date;
+
+        // Check if we have data for the requested range (with 30 days tolerance for market holidays)
+        $startDiff = abs($actualStart->diffInDays($requestedStart));
+        $endDiff = abs($actualEnd->diffInDays($requestedEnd));
+
+        // If start or end dates are significantly different (> 30 days), we need more data
+        if ($startDiff > 30 || $endDiff > 30) {
+            Log::info("Data range mismatch", [
+                'requested' => "{$startDate} to {$endDate}",
+                'actual' => "{$actualStart->format('Y-m-d')} to {$actualEnd->format('Y-m-d')}",
+                'start_diff' => $startDiff,
+                'end_diff' => $endDiff,
+            ]);
+            return true;
+        }
+
+        // Check for large gaps in data (more than 60 days between consecutive records)
+        $previousDate = null;
+        foreach ($prices as $price) {
+            if ($previousDate !== null) {
+                $gap = $previousDate->diffInDays($price->trade_date);
+                if ($gap > 60) {
+                    Log::info("Large gap found in data", [
+                        'gap_days' => $gap,
+                        'between' => "{$previousDate->format('Y-m-d')} and {$price->trade_date->format('Y-m-d')}",
+                    ]);
+                    return true;
+                }
+            }
+            $previousDate = $price->trade_date;
+        }
+
+        return false;
     }
 
     /**
