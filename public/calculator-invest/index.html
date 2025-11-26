@@ -6,6 +6,7 @@
     <title>Calculator-Invest — Калькулятор инвестиционных стратегий</title>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
     <style>
         :root {
             --primary: #3B82F6;
@@ -357,6 +358,47 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Price Info Block */
+        .price-info-block {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: var(--gray-50);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+            flex-wrap: wrap;
+        }
+
+        .price-start,
+        .price-end {
+            color: var(--gray-700);
+        }
+
+        .price-arrow {
+            color: var(--gray-400);
+            font-size: 1.2rem;
+        }
+
+        .price-change-positive {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .price-change-negative {
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .price-info-block {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -432,14 +474,28 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="start_date">Дата начала</label>
-                            <input type="date" id="start_date" x-model="params.start_date">
+                            <input
+                                type="date"
+                                id="start_date"
+                                x-model="params.start_date"
+                                :min="selectedInstrument?.min_date"
+                                :max="selectedInstrument?.max_date">
                         </div>
 
                         <div class="form-group">
                             <label for="end_date">Дата окончания</label>
-                            <input type="date" id="end_date" x-model="params.end_date">
+                            <input
+                                type="date"
+                                id="end_date"
+                                x-model="params.end_date"
+                                :min="selectedInstrument?.min_date"
+                                :max="selectedInstrument?.max_date">
                         </div>
                     </div>
+
+                    <p x-show="selectedInstrument" class="alert-info" style="font-size: 0.875rem; padding: 0.5rem; margin-top: 0.5rem;">
+                        📅 Доступный период: <span x-text="selectedInstrument?.min_date"></span> — <span x-text="selectedInstrument?.max_date"></span>
+                    </p>
 
                     <button
                         class="btn"
@@ -508,6 +564,31 @@
                     </div>
                 </div>
 
+                <!-- Price Dynamics Chart -->
+                <div class="card">
+                    <h2 style="margin-bottom: 0.5rem; font-size: 1.25rem;">Динамика котировок</h2>
+
+                    <!-- Price info block -->
+                    <div x-show="results && results.price_metrics" class="price-info-block">
+                        <span class="price-start">
+                            Начало: <strong x-text="formatCurrency(results.price_metrics?.start_price)"></strong>
+                        </span>
+                        <span class="price-arrow">→</span>
+                        <span class="price-end">
+                            Конец: <strong x-text="formatCurrency(results.price_metrics?.end_price)"></strong>
+                        </span>
+                        <span
+                            :class="results.price_metrics?.change_absolute >= 0 ? 'price-change-positive' : 'price-change-negative'"
+                            class="price-change">
+                            (<span x-text="(results.price_metrics?.change_absolute >= 0 ? '+' : '') + results.price_metrics?.change_percentage + '%'"></span>)
+                        </span>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="priceChart"></canvas>
+                    </div>
+                </div>
+
                 <!-- Table -->
                 <div class="card">
                     <h2 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Детальная таблица</h2>
@@ -564,6 +645,7 @@
                 loading: false,
                 error: null,
                 chart: null,
+                priceChart: null,
                 strategies: {
                     perfect_timing: { name: 'Идеальный тайминг', color: '#10B981' },
                     first_day: { name: 'Первый день периода', color: '#3B82F6' },
@@ -592,6 +674,20 @@
                 selectInstrument(instrument) {
                     this.selectedInstrument = instrument;
                     this.error = null;
+
+                    // Set default dates within instrument's available range
+                    if (instrument.min_date && instrument.max_date) {
+                        const minDate = new Date(instrument.min_date);
+                        const maxDate = new Date(instrument.max_date);
+
+                        // Default start: max(instrument min, 2020-01-01)
+                        const defaultStartDate = new Date('2020-01-01');
+                        this.params.start_date = (defaultStartDate < minDate) ? instrument.min_date : '2020-01-01';
+
+                        // Default end: min(instrument max, 2024-12-31)
+                        const defaultEndDate = new Date('2024-12-31');
+                        this.params.end_date = (defaultEndDate > maxDate) ? instrument.max_date : '2024-12-31';
+                    }
                 },
 
                 resetInstrument() {
@@ -611,6 +707,26 @@
                     this.results = null;
 
                     try {
+                        // Validate dates are within instrument's available range
+                        if (this.selectedInstrument.min_date && this.selectedInstrument.max_date) {
+                            const startDate = new Date(this.params.start_date);
+                            const endDate = new Date(this.params.end_date);
+                            const minDate = new Date(this.selectedInstrument.min_date);
+                            const maxDate = new Date(this.selectedInstrument.max_date);
+
+                            if (startDate < minDate || startDate > maxDate) {
+                                throw new Error(`Дата начала должна быть в диапазоне ${this.selectedInstrument.min_date} — ${this.selectedInstrument.max_date}`);
+                            }
+
+                            if (endDate < minDate || endDate > maxDate) {
+                                throw new Error(`Дата окончания должна быть в диапазоне ${this.selectedInstrument.min_date} — ${this.selectedInstrument.max_date}`);
+                            }
+
+                            if (startDate >= endDate) {
+                                throw new Error('Дата начала должна быть раньше даты окончания');
+                            }
+                        }
+
                         const requestBody = {
                             ticker: this.selectedInstrument.ticker,
                             ...this.params
@@ -637,6 +753,7 @@
                         this.$nextTick(() => {
                             setTimeout(() => {
                                 this.renderChart();
+                                this.renderPriceChart();
                             }, 100);
                         });
 
@@ -719,6 +836,140 @@
                                     title: {
                                         display: true,
                                         text: 'Период'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                },
+
+                renderPriceChart() {
+                    const ctx = document.getElementById('priceChart');
+                    if (!ctx || !this.results.historical_prices) return;
+
+                    if (typeof Chart === 'undefined') return;
+
+                    // Destroy previous chart if exists
+                    if (this.priceChart) {
+                        this.priceChart.destroy();
+                    }
+
+                    const prices = this.results.historical_prices;
+                    const metrics = this.results.price_metrics;
+
+                    // Prepare data
+                    const dates = prices.map(p => p.date);
+                    const closes = prices.map(p => p.close);
+
+                    // Find min and max points for annotations
+                    const minPrice = metrics.min_price;
+                    const maxPrice = metrics.max_price;
+                    const minIndex = prices.findIndex(p => p.low === minPrice);
+                    const maxIndex = prices.findIndex(p => p.high === maxPrice);
+
+                    this.priceChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: dates,
+                            datasets: [{
+                                label: `Цена ${this.selectedInstrument.ticker}`,
+                                data: closes,
+                                borderColor: '#3B82F6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.1,
+                                fill: true,
+                                pointRadius: 0,
+                                pointHoverRadius: 5,
+                                pointHoverBackgroundColor: '#3B82F6',
+                                pointHoverBorderColor: '#FFFFFF',
+                                pointHoverBorderWidth: 2,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: {
+                                mode: 'index',
+                                intersect: false,
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        title: (context) => {
+                                            const date = context[0].label;
+                                            return `Дата: ${date}`;
+                                        },
+                                        label: (context) => {
+                                            return `Цена закрытия: ${this.formatCurrency(context.parsed.y)}`;
+                                        }
+                                    }
+                                },
+                                annotation: {
+                                    annotations: {
+                                        minPoint: {
+                                            type: 'point',
+                                            xValue: minIndex,
+                                            yValue: minPrice,
+                                            backgroundColor: '#EF4444',
+                                            borderColor: '#FFFFFF',
+                                            borderWidth: 2,
+                                            radius: 6,
+                                            label: {
+                                                enabled: true,
+                                                content: `Мин: ${this.formatCurrency(minPrice)}`,
+                                                position: 'bottom',
+                                                backgroundColor: '#EF4444',
+                                                color: '#FFFFFF',
+                                                font: {
+                                                    size: 11,
+                                                    weight: 'bold'
+                                                },
+                                                padding: 4
+                                            }
+                                        },
+                                        maxPoint: {
+                                            type: 'point',
+                                            xValue: maxIndex,
+                                            yValue: maxPrice,
+                                            backgroundColor: '#10B981',
+                                            borderColor: '#FFFFFF',
+                                            borderWidth: 2,
+                                            radius: 6,
+                                            label: {
+                                                enabled: true,
+                                                content: `Макс: ${this.formatCurrency(maxPrice)}`,
+                                                position: 'top',
+                                                backgroundColor: '#10B981',
+                                                color: '#FFFFFF',
+                                                font: {
+                                                    size: 11,
+                                                    weight: 'bold'
+                                                },
+                                                padding: 4
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: false,
+                                    ticks: {
+                                        callback: (value) => this.formatNumber(value) + ' ₽'
+                                    }
+                                },
+                                x: {
+                                    ticks: {
+                                        maxTicksLimit: 10,
+                                        autoSkip: true
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Дата'
                                     }
                                 }
                             }

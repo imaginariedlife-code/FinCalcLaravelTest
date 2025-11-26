@@ -79,6 +79,24 @@ class InvestmentCalculatorService
                 'total_periods' => count($periods),
                 'current_price' => $prices->last()->close,
             ],
+            'historical_prices' => $prices->map(function ($price) {
+                return [
+                    'date' => $price->trade_date->format('Y-m-d'),
+                    'close' => (float) $price->close,
+                    'high' => (float) $price->high,
+                    'low' => (float) $price->low,
+                ];
+            })->values()->toArray(),
+            'price_metrics' => [
+                'start_price' => (float) $prices->first()->close,
+                'end_price' => (float) $prices->last()->close,
+                // Use 'low' for min, fallback to 'close' if low is 0 or null
+                'min_price' => (float) ($prices->min('low') > 0 ? $prices->min('low') : $prices->min('close')),
+                // Use 'high' for max, fallback to 'close' if high is 0 or null
+                'max_price' => (float) ($prices->max('high') > 0 ? $prices->max('high') : $prices->max('close')),
+                'change_absolute' => (float) ($prices->last()->close - $prices->first()->close),
+                'change_percentage' => round((($prices->last()->close - $prices->first()->close) / $prices->first()->close) * 100, 2),
+            ],
         ];
     }
 
@@ -93,14 +111,25 @@ class InvestmentCalculatorService
         $finalPrice = $periods[count($periods) - 1]->last()->close;
 
         foreach ($periods as $period) {
+            // Use 'low' price, but fallback to 'close' if low is 0 or null
             $lowestPrice = $period->min('low');
+            if ($lowestPrice <= 0) {
+                $lowestPrice = $period->min('close');
+            }
+
             $sharesBought = $amount / $lowestPrice;
 
             $totalShares += $sharesBought;
             $totalInvested += $amount;
 
+            // Find the date with lowest price
+            $targetRecord = $period->where('low', $lowestPrice)->first();
+            if (!$targetRecord) {
+                $targetRecord = $period->where('close', $lowestPrice)->first();
+            }
+
             $purchases[] = [
-                'date' => $period->where('low', $lowestPrice)->first()->trade_date->format('Y-m-d'),
+                'date' => $targetRecord->trade_date->format('Y-m-d'),
                 'price' => $lowestPrice,
                 'shares' => round($sharesBought, 4),
                 'invested' => $amount,
@@ -125,7 +154,14 @@ class InvestmentCalculatorService
 
         foreach ($periods as $period) {
             $firstDay = $period->first();
-            $price = $firstDay->open ?? $firstDay->close;
+            // Use open price, fallback to close if open is 0 or null
+            $price = ($firstDay->open > 0) ? $firstDay->open : $firstDay->close;
+
+            // Safety check: if price is still 0, skip this period
+            if ($price <= 0) {
+                continue;
+            }
+
             $sharesBought = $amount / $price;
 
             $totalShares += $sharesBought;
@@ -158,6 +194,12 @@ class InvestmentCalculatorService
         foreach ($periods as $period) {
             // Use average price for the period (simulating regular purchases)
             $avgPrice = $period->avg('close');
+
+            // Safety check: if avgPrice is 0, skip this period
+            if ($avgPrice <= 0) {
+                continue;
+            }
+
             $sharesBought = $amount / $avgPrice;
 
             $totalShares += $sharesBought;
@@ -189,14 +231,25 @@ class InvestmentCalculatorService
         $finalPrice = $periods[count($periods) - 1]->last()->close;
 
         foreach ($periods as $period) {
+            // Use 'high' price, but fallback to 'close' if high is 0 or null
             $highestPrice = $period->max('high');
+            if ($highestPrice <= 0) {
+                $highestPrice = $period->max('close');
+            }
+
             $sharesBought = $amount / $highestPrice;
 
             $totalShares += $sharesBought;
             $totalInvested += $amount;
 
+            // Find the date with highest price
+            $targetRecord = $period->where('high', $highestPrice)->first();
+            if (!$targetRecord) {
+                $targetRecord = $period->where('close', $highestPrice)->first();
+            }
+
             $purchases[] = [
-                'date' => $period->where('high', $highestPrice)->first()->trade_date->format('Y-m-d'),
+                'date' => $targetRecord->trade_date->format('Y-m-d'),
                 'price' => $highestPrice,
                 'shares' => round($sharesBought, 4),
                 'invested' => $amount,

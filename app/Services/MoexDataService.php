@@ -38,10 +38,17 @@ class MoexDataService
         $allData = [];
         $start = 0;
 
-        // Determine if it's an index or a stock
-        $isIndex = in_array($ticker, ['IMOEX', 'MCFTR']);
-        $market = $isIndex ? 'index' : 'shares';
-        $board = $isIndex ? 'SNDX' : 'TQBR'; // Main board for stocks, index board for indices
+        // Determine market and board based on ticker
+        $market = 'shares';
+        $board = 'TQBR'; // Default: main board for stocks
+
+        if ($ticker === 'IMOEX') {
+            $market = 'index';
+            $board = 'SNDX'; // IMOEX on Stock Index board
+        } elseif ($ticker === 'MCFTR') {
+            $market = 'index';
+            $board = 'RTSI'; // MCFTR on RTS Index board
+        }
 
         do {
             $url = sprintf(
@@ -188,11 +195,17 @@ class MoexDataService
                 ->orderByDate('desc')
                 ->first();
 
+            $earliestPrice = HistoricalPrice::forTicker($ticker)
+                ->orderByDate('asc')
+                ->first();
+
             return [
                 'ticker' => $ticker,
                 'name' => $name,
                 'last_updated' => $latestPrice?->trade_date?->format('Y-m-d'),
                 'last_price' => $latestPrice?->close,
+                'min_date' => $earliestPrice?->trade_date?->format('Y-m-d'),
+                'max_date' => $latestPrice?->trade_date?->format('Y-m-d'),
             ];
         })->values()->toArray();
     }
